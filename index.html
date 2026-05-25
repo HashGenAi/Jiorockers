@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Movie Blog</title>
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  padding:20px;
+  background:#111;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+h1{margin-bottom:25px;}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:#1c1c1c;
+  border-radius:14px;
+  overflow:hidden;
+  transition:.3s;
+  cursor:pointer;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+}
+
+.poster{
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  display:block;
+}
+
+.content{padding:14px;}
+
+.title{
+  font-size:17px;
+  margin:0 0 10px;
+  line-height:1.4;
+}
+
+.meta{
+  font-size:13px;
+  color:#bbb;
+  margin-bottom:10px;
+}
+
+.labels{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:12px;
+}
+
+.label{
+  background:#333;
+  padding:4px 8px;
+  border-radius:30px;
+  font-size:12px;
+}
+
+.desc{
+  font-size:14px;
+  color:#ddd;
+  line-height:1.5;
+}
+
+.pagination{
+  margin-top:40px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+}
+
+button{
+  border:none;
+  background:#fff;
+  color:#000;
+  padding:10px 18px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:disabled{
+  opacity:.5;
+}
+
+.loading{
+  text-align:center;
+  padding:40px;
+  font-size:18px;
+}
+
+#detailView{
+  display:none;
+  background:#1c1c1c;
+  padding:20px;
+  border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Latest Movies</h1>
+
+<div id="posts" class="grid"></div>
+
+<div id="detailView">
+  <button onclick="goBack()">⬅ Back</button>
+  <div id="detailContent"></div>
+</div>
+
+<div class="pagination">
+  <button id="prevBtn">Prev</button>
+  <span id="pageNum">1</span>
+  <button id="nextBtn">Next</button>
+</div>
+
+<script>
+const API = "https://jiorockers-api.salim1monira.workers.dev";
+
+let currentPage = 1;
+let allPosts = [];
+
+const postsEl = document.getElementById("posts");
+const pageNumEl = document.getElementById("pageNum");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+const detailView = document.getElementById("detailView");
+const detailContent = document.getElementById("detailContent");
+
+// slug generator (must match worker)
+function slugify(text){
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/(^-|-$)/g,'');
+}
+
+function getImage(post){
+  return (
+    post.media$thumbnail?.url?.replace("/s72-c/","/s500/")
+    ||
+    post.content?.$t.match(/<img.*?src="(.*?)"/i)?.[1]
+    ||
+    "https://via.placeholder.com/500x280?text=No+Image"
+  );
+}
+
+function getSummary(html){
+  if(!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.innerText.replace(/\s+/g," ").trim().substring(0,120) + "...";
+}
+
+// create card
+function createCard(post){
+  const title = post.title?.$t || "No Title";
+  const image = getImage(post);
+  const summary = getSummary(post.content?.$t);
+  const date = new Date(post.published?.$t).toLocaleDateString();
+
+  const slug = slugify(title);
+
+  return `
+    <div class="card" onclick="openPost('${slug}')">
+      <img class="poster" src="${image}" loading="lazy">
+      <div class="content">
+        <h3 class="title">${title}</h3>
+        <div class="meta">${date}</div>
+        <div class="desc">${summary}</div>
+      </div>
+    </div>
+  `;
+}
+
+// open post (NEW /post/slug routing)
+function openPost(slug){
+  location.href = "/post/" + slug;
+}
+
+// render post view
+function renderPost(post){
+
+  const title = post.title?.$t || "No Title";
+  const content = post.content?.$t || "";
+
+  postsEl.style.display = "none";
+  detailView.style.display = "block";
+
+  detailContent.innerHTML = `
+    <h2>${title}</h2>
+    <div>${content}</div>
+  `;
+}
+
+// go back
+function goBack(){
+  history.pushState({}, "", "/");
+  postsEl.style.display = "grid";
+  detailView.style.display = "none";
+}
+
+// load posts
+async function loadPosts(page){
+
+  postsEl.innerHTML = `<div class="loading">Loading...</div>`;
+
+  const res = await fetch(API + "?page=" + page);
+  const data = await res.json();
+
+  allPosts = data.posts || [];
+
+  postsEl.innerHTML = allPosts.map(p => createCard(p)).join("");
+
+  pageNumEl.innerText = page;
+  prevBtn.disabled = page <= 1;
+
+  checkRoute();
+}
+
+// find post from slug
+function findPostBySlug(slug){
+  return allPosts.find(p =>
+    slugify(p.title?.$t || "") === slug
+  );
+}
+
+// route handler
+function checkRoute(){
+
+  const path = window.location.pathname;
+
+  // if /post/slug
+  if(path.startsWith("/post/")){
+
+    const slug = path.replace("/post/", "");
+
+    const post = findPostBySlug(slug);
+
+    if(post){
+      renderPost(post);
+    } else {
+      postsEl.style.display = "none";
+      detailView.style.display = "block";
+      detailContent.innerHTML = "<h2>Post not found</h2>";
+    }
+
+  } else {
+    postsEl.style.display = "grid";
+    detailView.style.display = "none";
+  }
+}
+
+// pagination
+nextBtn.onclick = () => {
+  currentPage++;
+  loadPosts(currentPage);
+};
+
+prevBtn.onclick = () => {
+  if(currentPage > 1){
+    currentPage--;
+    loadPosts(currentPage);
+  }
+};
+
+// init
+loadPosts(currentPage);
+</script>
+
+</body>
+</html>
