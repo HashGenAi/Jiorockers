@@ -6,13 +6,17 @@
 <title>Movie Blog</title>
 
 <style>
+*{box-sizing:border-box;}
+
 body{
   margin:0;
   padding:20px;
   background:#111;
   color:#fff;
-  font-family:Arial;
+  font-family:Arial,sans-serif;
 }
+
+h1{margin:0 0 25px;}
 
 .grid{
   display:grid;
@@ -22,19 +26,67 @@ body{
 
 .card{
   background:#1c1c1c;
-  border-radius:12px;
-  cursor:pointer;
+  border-radius:14px;
   overflow:hidden;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
 }
 
 .poster{
   width:100%;
   aspect-ratio:16/9;
   object-fit:cover;
+  display:block;
 }
 
-.content{
-  padding:12px;
+.content{padding:14px;}
+
+.title{
+  font-size:17px;
+  margin:0 0 10px;
+  line-height:1.4;
+}
+
+.meta{
+  font-size:13px;
+  color:#bbb;
+  margin-bottom:10px;
+}
+
+.desc{
+  font-size:14px;
+  color:#ddd;
+  line-height:1.5;
+}
+
+.pagination{
+  margin-top:40px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+}
+
+button{
+  border:none;
+  background:#fff;
+  color:#000;
+  padding:10px 18px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:disabled{opacity:.5;}
+
+.loading{
+  text-align:center;
+  padding:40px;
+  font-size:18px;
 }
 
 #detailView{
@@ -43,122 +95,162 @@ body{
   padding:20px;
   border-radius:12px;
 }
+
+.backBtn{
+  margin-bottom:15px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>Movies</h1>
+<h1>Latest Movies</h1>
 
 <div id="posts" class="grid"></div>
 
 <div id="detailView">
-  <button onclick="goBack()">⬅ Back</button>
+  <button class="backBtn" onclick="goBack()">⬅ Back</button>
   <div id="detailContent"></div>
 </div>
 
-<script>
+<div class="pagination" id="pagination">
+  <button id="prevBtn">Prev</button>
+  <span id="pageNum">1</span>
+  <button id="nextBtn">Next</button>
+</div>
 
+<script>
 const API = "https://jiorockers-api.salim1monira.workers.dev";
 
-let postsData = [];
+let currentPage = 1;
+let allPosts = [];
 
 const postsEl = document.getElementById("posts");
 const detailView = document.getElementById("detailView");
 const detailContent = document.getElementById("detailContent");
+const pageNumEl = document.getElementById("pageNum");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const paginationEl = document.getElementById("pagination");
 
-// slug
-function slugify(t){
-  return (t||"")
+function slugify(text){
+  return (text || "")
+    .toString()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g,'-')
-    .replace(/(^-|-$)/g,'');
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
-// image
-function getImage(p){
-  return p.media$thumbnail?.url?.replace("/s72-c/","/s500/")
-    || "https://via.placeholder.com/500x280";
+function getImage(post){
+  return (
+    post.media$thumbnail?.url?.replace("/s72-c/","/s500/") ||
+    post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1] ||
+    "https://via.placeholder.com/500x280?text=No+Image"
+  );
 }
 
-// card
-function createCard(p){
-  const title = p.title?.$t || "No Title";
+function getSummary(html){
+  if(!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.innerText.replace(/\s+/g," ").trim().substring(0,120) + "...";
+}
+
+function createCard(post){
+  const title = post.title?.$t || "No Title";
+  const image = getImage(post);
+  const summary = getSummary(post.content?.$t);
+  const date = new Date(post.published?.$t).toLocaleDateString();
   const slug = slugify(title);
-  const img = getImage(p);
 
   return `
     <div class="card" onclick="openPost('${slug}')">
-      <img class="poster" src="${img}">
+      <img class="poster" src="${image}" loading="lazy">
       <div class="content">
-        <h3>${title}</h3>
+        <h3 class="title">${title}</h3>
+        <div class="meta">${date}</div>
+        <div class="desc">${summary}</div>
       </div>
     </div>
   `;
 }
 
-// OPEN POST
 function openPost(slug){
   location.href = "/post/" + slug;
 }
 
-// RENDER POST
-function showPost(post){
+function renderPost(post){
   postsEl.style.display = "none";
+  paginationEl.style.display = "none";
   detailView.style.display = "block";
 
   detailContent.innerHTML = `
-    <h2>${post.title?.$t}</h2>
+    <h2>${post.title?.$t || "No Title"}</h2>
     <div>${post.content?.$t || ""}</div>
   `;
 }
 
-// BACK
 function goBack(){
   history.pushState({}, "", "/");
-  postsEl.style.display = "grid";
   detailView.style.display = "none";
+  paginationEl.style.display = "flex";
+  postsEl.style.display = "grid";
 }
 
-// FIND POST
-function findPost(slug){
-  return postsData.find(p =>
-    slugify(p.title?.$t) === slug
-  );
-}
+async function loadSinglePost(){
+  const slug = window.location.pathname.replace("/post/", "").replace(/\/$/, "");
+  detailContent.innerHTML = "<h2>Loading post...</h2>";
+  detailView.style.display = "block";
+  postsEl.style.display = "none";
+  paginationEl.style.display = "none";
 
-// ROUTER
-function router(){
-  const path = window.location.pathname;
+  const res = await fetch(API + "?slug=" + encodeURIComponent(slug));
+  const post = await res.json();
 
-  if(path.startsWith("/post/")){
-    const slug = path.replace("/post/","");
-
-    const post = findPost(slug);
-
-    if(post){
-      showPost(post);
-    }else{
-      detailView.style.display = "block";
-      detailContent.innerHTML = "<h2>Post not found</h2>";
-    }
+  if(!post){
+    detailContent.innerHTML = "<h2>Post not found</h2>";
+    return;
   }
+
+  renderPost(post);
 }
 
-// LOAD DATA
-async function load(){
-  const res = await fetch(API + "?page=1");
+async function loadPosts(page){
+  postsEl.innerHTML = `<div class="loading">Loading...</div>`;
+  detailView.style.display = "none";
+  paginationEl.style.display = "flex";
+  postsEl.style.display = "grid";
+
+  const res = await fetch(API + "?page=" + page);
   const data = await res.json();
 
-  postsData = data.posts || [];
+  allPosts = data.posts || [];
+  postsEl.innerHTML = allPosts.map(createCard).join("");
 
-  postsEl.innerHTML = postsData.map(createCard).join("");
-
-  router();
+  pageNumEl.innerText = page;
+  prevBtn.disabled = page <= 1;
 }
 
-load();
+nextBtn.onclick = () => {
+  currentPage++;
+  loadPosts(currentPage);
+};
 
+prevBtn.onclick = () => {
+  if(currentPage > 1){
+    currentPage--;
+    loadPosts(currentPage);
+  }
+};
+
+(async function init(){
+  if(window.location.pathname.startsWith("/post/")){
+    await loadSinglePost();
+  }else{
+    await loadPosts(currentPage);
+  }
+})();
 </script>
 
 </body>
