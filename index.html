@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Movie Blog</title>
 
 <style>
-
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box;}
 
 body{
   margin:0;
@@ -21,9 +17,7 @@ body{
   font-family:Arial,sans-serif;
 }
 
-h1{
-  margin-bottom:25px;
-}
+h1{margin-bottom:25px;}
 
 .grid{
   display:grid;
@@ -35,8 +29,8 @@ h1{
   background:#1c1c1c;
   border-radius:14px;
   overflow:hidden;
-  cursor:pointer;
   transition:.3s;
+  cursor:pointer;
 }
 
 .card:hover{
@@ -50,19 +44,32 @@ h1{
   display:block;
 }
 
-.content{
-  padding:14px;
-}
+.content{padding:14px;}
 
 .title{
   font-size:17px;
   margin:0 0 10px;
+  line-height:1.4;
 }
 
 .meta{
   font-size:13px;
   color:#bbb;
   margin-bottom:10px;
+}
+
+.labels{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:12px;
+}
+
+.label{
+  background:#333;
+  padding:4px 8px;
+  border-radius:30px;
+  font-size:12px;
 }
 
 .desc{
@@ -75,6 +82,7 @@ h1{
   margin-top:40px;
   display:flex;
   justify-content:center;
+  align-items:center;
   gap:10px;
 }
 
@@ -88,6 +96,16 @@ button{
   font-weight:bold;
 }
 
+button:disabled{
+  opacity:.5;
+}
+
+.loading{
+  text-align:center;
+  padding:40px;
+  font-size:18px;
+}
+
 #detailView{
   display:none;
   background:#1c1c1c;
@@ -95,11 +113,9 @@ button{
   border-radius:12px;
 }
 
-.loading{
-  text-align:center;
-  padding:40px;
+.backBtn{
+  margin-bottom:15px;
 }
-
 </style>
 </head>
 
@@ -110,102 +126,68 @@ button{
 <div id="posts" class="grid"></div>
 
 <div id="detailView">
-
-  <button onclick="goBack()">⬅ Back</button>
-
+  <button class="backBtn" onclick="goBack()">⬅ Back</button>
   <div id="detailContent"></div>
-
 </div>
 
-<div class="pagination" id="pagination">
-
+<div class="pagination">
   <button id="prevBtn">Prev</button>
-
   <span id="pageNum">1</span>
-
   <button id="nextBtn">Next</button>
-
 </div>
 
 <script>
-
-const API = "https://jiorockers.salim1monira.workers.dev";
+const API = "https://jiorockers-api.salim1monira.workers.dev";
 
 let currentPage = 1;
+let allPosts = [];
 
 const postsEl = document.getElementById("posts");
-const detailView = document.getElementById("detailView");
-const detailContent = document.getElementById("detailContent");
 const pageNumEl = document.getElementById("pageNum");
-const pagination = document.getElementById("pagination");
-
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-// =====================
-// SLUG
-// =====================
+const detailView = document.getElementById("detailView");
+const detailContent = document.getElementById("detailContent");
 
+// slug generator
 function slugify(text){
-
-  return (text || "")
+  return text
     .toString()
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g,'-')
     .replace(/(^-|-$)/g,'');
-
 }
 
-// =====================
-// IMAGE
-// =====================
-
 function getImage(post){
-
   return (
     post.media$thumbnail?.url?.replace("/s72-c/","/s500/")
     ||
-    post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1]
+    post.content?.$t.match(/<img.*?src="(.*?)"/i)?.[1]
     ||
     "https://via.placeholder.com/500x280?text=No+Image"
   );
-
 }
-
-// =====================
-// SUMMARY
-// =====================
 
 function getSummary(html){
-
   if(!html) return "";
-
   const div = document.createElement("div");
-
   div.innerHTML = html;
-
-  return div.innerText
-    .replace(/\s+/g," ")
-    .trim()
-    .substring(0,120) + "...";
-
+  return div.innerText.replace(/\s+/g," ").trim().substring(0,120) + "...";
 }
 
-// =====================
-// CARD
-// =====================
+function getLabels(post){
+  return post.category?.map(c => c.term) || [];
+}
 
+// create card
 function createCard(post){
-
-  const title = post.title?.$t || "No Title";
-
   const image = getImage(post);
-
+  const title = post.title?.$t || "No Title";
   const summary = getSummary(post.content?.$t);
-
-  const date = new Date(post.published?.$t)
-    .toLocaleDateString();
+  const labels = getLabels(post);
+  const date = new Date(post.published?.$t).toLocaleDateString();
 
   const slug = slugify(title);
 
@@ -220,6 +202,10 @@ function createCard(post){
 
         <div class="meta">${date}</div>
 
+        <div class="labels">
+          ${labels.map(l => `<span class="label">${l}</span>`).join("")}
+        </div>
+
         <div class="desc">${summary}</div>
 
       </div>
@@ -228,157 +214,98 @@ function createCard(post){
   `;
 }
 
-// =====================
-// OPEN POST
-// =====================
-
+// open post by slug
 function openPost(slug){
 
-  location.href = "/post/" + slug;
-
-}
-
-// =====================
-// RENDER POST
-// =====================
-
-function renderPost(post){
-
-  postsEl.style.display = "none";
-
-  pagination.style.display = "none";
-
-  detailView.style.display = "block";
-
-  detailContent.innerHTML = `
-    <h2>${post.title?.$t || "No Title"}</h2>
-
-    <div>
-      ${post.content?.$t || ""}
-    </div>
-  `;
-
-}
-
-// =====================
-// LOAD SINGLE POST
-// =====================
-
-async function loadSinglePost(){
-
-  const slug = window.location.pathname
-    .replace("/post/","")
-    .replace(/\/$/,"");
-
-  detailView.style.display = "block";
-
-  postsEl.style.display = "none";
-
-  pagination.style.display = "none";
-
-  detailContent.innerHTML =
-    `<div class="loading">Loading post...</div>`;
-
-  const res =
-    await fetch(API + "?slug=" + encodeURIComponent(slug));
-
-  const post = await res.json();
+  const post = allPosts.find(p =>
+    slugify(p.title?.$t || "") === slug
+  );
 
   if(!post){
-
-    detailContent.innerHTML =
-      "<h2>Post not found</h2>";
-
+    postsEl.style.display = "none";
+    detailView.style.display = "block";
+    detailContent.innerHTML = "<h2>Post not found</h2>";
     return;
   }
 
-  renderPost(post);
+  const title = post.title?.$t || "No Title";
+  const content = post.content?.$t || "";
 
+  postsEl.style.display = "none";
+  detailView.style.display = "block";
+
+  detailContent.innerHTML = `
+    <h2>${title}</h2>
+    <div>${content}</div>
+  `;
+
+  history.pushState({slug}, "", "?post=" + slug);
 }
 
-// =====================
-// LOAD POSTS
-// =====================
+// back
+function goBack(){
+  postsEl.style.display = "grid";
+  detailView.style.display = "none";
+  history.pushState({}, "", window.location.pathname);
+}
 
+// check URL
+function checkURL(){
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("post");
+
+  if(slug && allPosts.length){
+    openPost(slug);
+  }
+}
+
+// load posts
 async function loadPosts(page){
 
-  detailView.style.display = "none";
+  postsEl.innerHTML = `<div class="loading">Loading...</div>`;
 
-  postsEl.style.display = "grid";
+  try{
+    const res = await fetch(API + "?page=" + page);
+    const data = await res.json();
 
-  pagination.style.display = "flex";
+    allPosts = data.posts || [];
 
-  postsEl.innerHTML =
-    `<div class="loading">Loading...</div>`;
+    postsEl.innerHTML = allPosts.map(p => createCard(p)).join("");
 
-  const res =
-    await fetch(API + "?page=" + page);
+    pageNumEl.innerText = page;
+    prevBtn.disabled = page <= 1;
 
-  const data = await res.json();
+    checkURL();
 
-  const posts = data.posts || [];
-
-  postsEl.innerHTML =
-    posts.map(createCard).join("");
-
-  pageNumEl.innerText = page;
-
-  prevBtn.disabled = page <= 1;
-
+  }catch(e){
+    postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
+  }
 }
 
-// =====================
-// BACK
-// =====================
-
-function goBack(){
-
-  location.href = "/";
-
-}
-
-// =====================
-// PAGINATION
-// =====================
-
+// pagination
 nextBtn.onclick = () => {
-
   currentPage++;
-
   loadPosts(currentPage);
-
 };
 
 prevBtn.onclick = () => {
-
   if(currentPage > 1){
-
     currentPage--;
-
     loadPosts(currentPage);
-
   }
-
 };
 
-// =====================
-// INIT
-// =====================
-
-(async function(){
-
-  if(window.location.pathname.startsWith("/post/")){
-
-    await loadSinglePost();
-
-  }else{
-
-    await loadPosts(currentPage);
-
+// browser back button support
+window.onpopstate = () => {
+  if(location.search.includes("post=")){
+    const slug = new URLSearchParams(location.search).get("post");
+    openPost(slug);
+  } else {
+    goBack();
   }
+};
 
-})();
-
+loadPosts(currentPage);
 </script>
 
 </body>
