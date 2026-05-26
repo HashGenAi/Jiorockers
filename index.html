@@ -1,598 +1,603 @@
+Here is the full fixed code with the scroll-jump removed and the grid stabilized:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Premium Movie Blog</title>
 
-<title>Premium Movie Blog</title>
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
 
-<style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+    html{
+      scroll-behavior:smooth;
+    }
 
-html{
-  scroll-behavior:smooth;
-}
+    body{
+      background:
+        radial-gradient(circle at top,#1c1c1c 0%,#0f0f0f 45%),
+        #0f0f0f;
+      color:#fff;
+      font-family:Arial,sans-serif;
+      padding:14px;
+      overflow-x:hidden;
+    }
 
-body{
-  background:
-    radial-gradient(circle at top,#1c1c1c 0%,#0f0f0f 45%),
-    #0f0f0f;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  padding:14px;
-  overflow-x:hidden;
-}
+    h1{
+      text-align:center;
+      font-size:34px;
+      font-weight:800;
+      margin-bottom:28px;
+      letter-spacing:.5px;
+      background:linear-gradient(90deg,#fff,#bbb);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
 
-h1{
-  text-align:center;
-  font-size:34px;
-  font-weight:800;
-  margin-bottom:28px;
-  letter-spacing:.5px;
-  background:linear-gradient(90deg,#fff,#bbb);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
+    .page-badge{
+      position:sticky;
+      top:12px;
+      z-index:999;
+      width:fit-content;
+      margin-left:auto;
+      margin-right:auto;
+      margin-bottom:14px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(10px);
+      font-size:13px;
+      font-weight:700;
+      color:#fff;
+      display:none;
+      box-shadow:0 8px 24px rgba(0,0,0,.25);
+    }
 
-.page-badge{
-  position:sticky;
-  top:12px;
-  z-index:999;
-  width:fit-content;
-  margin-left:auto;
-  margin-right:auto;
-  margin-bottom:14px;
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter:blur(10px);
-  font-size:13px;
-  font-weight:700;
-  color:#fff;
-  display:none;
-  box-shadow:0 8px 24px rgba(0,0,0,.25);
-}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:18px;
-}
+    @media(max-width:1300px){
+      .grid{
+        grid-template-columns:repeat(5,1fr);
+      }
+    }
 
-@media(max-width:1300px){
-  .grid{ grid-template-columns:repeat(5,1fr); }
-}
+    @media(max-width:1050px){
+      .grid{
+        grid-template-columns:repeat(4,1fr);
+      }
+    }
 
-@media(max-width:1050px){
-  .grid{ grid-template-columns:repeat(4,1fr); }
-}
+    @media(max-width:768px){
+      .grid{
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+      }
+    }
 
-@media(max-width:768px){
-  .grid{
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-  }
-}
+    @media(max-width:480px){
+      .grid{
+        grid-template-columns:repeat(3,1fr);
+        gap:8px;
+      }
+    }
 
-@media(max-width:480px){
-  .grid{
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-  }
-}
+    .card{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      background:linear-gradient(180deg,rgba(28,28,28,.96),rgba(16,16,16,.98));
+      border:1px solid rgba(255,255,255,.05);
+      transition:.4s ease;
+      cursor:pointer;
+      isolation:isolate;
+      box-shadow:0 8px 25px rgba(0,0,0,.35);
+      will-change:transform;
+    }
 
-.card{
-  position:relative;
-  overflow:hidden;
-  border-radius:24px;
-  background:linear-gradient(180deg,rgba(28,28,28,.96),rgba(16,16,16,.98));
-  border:1px solid rgba(255,255,255,.05);
-  transition:.4s ease;
-  cursor:pointer;
-  isolation:isolate;
-  box-shadow:0 8px 25px rgba(0,0,0,.35);
-}
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius:26px;
+      background:linear-gradient(135deg,rgba(255,0,102,.3),rgba(0,195,255,.25),rgba(0,255,170,.15),rgba(255,174,0,.25));
+      background-size:300% 300%;
+      animation:borderMove 7s linear infinite;
+      opacity:0;
+      z-index:-2;
+      transition:.4s ease;
+    }
 
-.card::before{
-  content:"";
-  position:absolute;
-  inset:-2px;
-  border-radius:26px;
-  background:linear-gradient(135deg,rgba(255,0,102,.3),rgba(0,195,255,.25),rgba(0,255,170,.15),rgba(255,174,0,.25));
-  background-size:300% 300%;
-  animation:borderMove 7s linear infinite;
-  opacity:0;
-  z-index:-2;
-  transition:.4s ease;
-}
+    .card:hover::before{
+      opacity:1;
+    }
 
-.card:hover::before{
-  opacity:1;
-}
+    @keyframes borderMove{
+      0%{
+        background-position:0% 50%;
+      }
+      100%{
+        background-position:300% 50%;
+      }
+    }
 
-@keyframes borderMove{
-  0%{ background-position:0% 50%; }
-  100%{ background-position:300% 50%; }
-}
+    .card:hover{
+      transform:scale(1.02);
+      box-shadow:0 20px 45px rgba(0,0,0,.55),0 0 20px rgba(255,0,102,.15);
+    }
 
-.card:hover{
-  transform:translateY(-8px) scale(1.02);
-  box-shadow:0 20px 45px rgba(0,0,0,.55),0 0 20px rgba(255,0,102,.15);
-}
+    .poster-wrap{
+      position:relative;
+      width:100%;
+      aspect-ratio:2/3;
+      overflow:hidden;
+      background:#1b1b1b;
+    }
 
-.poster-wrap{
-  position:relative;
-  width:100%;
-  aspect-ratio:2/3;
-  overflow:hidden;
-  background:#1b1b1b;
-}
+    .poster{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      transition:transform .8s ease, filter .4s ease;
+    }
 
-.poster{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-  transition:transform .8s ease, filter .4s ease;
-}
+    .card:hover .poster{
+      transform:scale(1.1);
+      filter:brightness(1.08);
+    }
 
-.card:hover .poster{
-  transform:scale(1.1);
-  filter:brightness(1.08);
-}
+    .poster-wrap::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:35%;
+      background:linear-gradient(to top,rgba(0,0,0,.9),transparent);
+      pointer-events:none;
+    }
 
-.poster-wrap::after{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
-  height:35%;
-  background:linear-gradient(to top,rgba(0,0,0,.9),transparent);
-  pointer-events:none;
-}
+    .content{
+      position:relative;
+      padding:12px;
+      z-index:2;
+    }
 
-.content{
-  position:relative;
-  padding:12px;
-  z-index:2;
-}
+    .title{
+      font-size:14px;
+      font-weight:800;
+      line-height:1.45;
+      overflow:visible;
+      white-space:normal;
+      word-break:break-word;
+      transition:.3s ease;
+      text-shadow:0 2px 10px rgba(0,0,0,.35);
+      margin-bottom:10px;
+    }
 
-.title{
-  font-size:14px;
-  font-weight:800;
-  line-height:1.45;
-  overflow:visible;
-  white-space:normal;
-  word-break:break-word;
-  transition:.3s ease;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);
-  margin-bottom:10px;
-}
+    .card:nth-child(6n+1) .title{ color:#ffbe76; }
+    .card:nth-child(6n+2) .title{ color:#d6a2ff; }
+    .card:nth-child(6n+3) .title{ color:#79dfff; }
+    .card:nth-child(6n+4) .title{ color:#72f1b8; }
+    .card:nth-child(6n+5) .title{ color:#ffe06b; }
+    .card:nth-child(6n+6) .title{ color:#ff9e9e; }
 
-.card:nth-child(6n+1) .title{ color:#ffbe76; }
-.card:nth-child(6n+2) .title{ color:#d6a2ff; }
-.card:nth-child(6n+3) .title{ color:#79dfff; }
-.card:nth-child(6n+4) .title{ color:#72f1b8; }
-.card:nth-child(6n+5) .title{ color:#ffe06b; }
-.card:nth-child(6n+6) .title{ color:#ff9e9e; }
+    .card:hover .title{
+      transform:translateX(5px);
+    }
 
-.card:hover .title{
-  transform:translateX(5px);
-}
+    .labels{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      gap:6px;
+      width:100%;
+    }
 
-.labels{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:flex-start;
-  gap:6px;
-  width:100%;
-}
+    .label{
+      display:inline-block;
+      flex:0 0 auto;
+      width:auto;
+      max-width:100%;
+      background:rgba(255,255,255,.09);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(8px);
+      color:#f1f1f1;
+      font-size:10px;
+      font-weight:600;
+      padding:5px 9px;
+      border-radius:40px;
+      transition:.3s ease;
+      white-space:nowrap;
+    }
 
-.label{
-  display:inline-block;
-  flex:0 0 auto;
-  width:auto;
-  max-width:100%;
-  background:rgba(255,255,255,.09);
-  border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(8px);
-  color:#f1f1f1;
-  font-size:10px;
-  font-weight:600;
-  padding:5px 9px;
-  border-radius:40px;
-  transition:.3s ease;
-  white-space:nowrap;
-}
+    .label:hover{
+      background:rgba(255,255,255,.16);
+    }
 
-.label:hover{
-  background:rgba(255,255,255,.16);
-}
+    .pagination{
+      margin-top:40px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
 
-.pagination{
-  margin-top:40px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:14px;
-  flex-wrap:wrap;
-}
+    button{
+      border:none;
+      outline:none;
+      background:linear-gradient(135deg,#ff004c,#ff5e00);
+      color:#fff;
+      padding:12px 20px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.3s ease;
+      box-shadow:0 10px 20px rgba(255,0,76,.2);
+    }
 
-button{
-  border:none;
-  outline:none;
-  background:linear-gradient(135deg,#ff004c,#ff5e00);
-  color:#fff;
-  padding:12px 20px;
-  border-radius:14px;
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer;
-  transition:.3s ease;
-  box-shadow:0 10px 20px rgba(255,0,76,.2);
-}
+    button:hover{
+      transform:translateY(-3px) scale(1.03);
+      box-shadow:0 14px 30px rgba(255,0,76,.35);
+    }
 
-button:hover{
-  transform:translateY(-3px) scale(1.03);
-  box-shadow:0 14px 30px rgba(255,0,76,.35);
-}
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
 
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
+    #pageNum{
+      font-size:16px;
+      font-weight:700;
+      color:#ddd;
+    }
 
-#pageNum{
-  font-size:16px;
-  font-weight:700;
-  color:#ddd;
-}
+    #detailView{
+      display:none;
+      max-width:1000px;
+      margin:auto;
+      background:linear-gradient(180deg,#1c1c1c,#131313);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 15px 40px rgba(0,0,0,.45);
+    }
 
-#detailView{
-  display:none;
-  max-width:1000px;
-  margin:auto;
-  background:linear-gradient(180deg,#1c1c1c,#131313);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:24px;
-  padding:22px;
-  box-shadow:0 15px 40px rgba(0,0,0,.45);
-}
+    .detail-title{
+      margin-bottom:20px;
+      font-size:32px;
+      line-height:1.5;
+    }
 
-.detail-title{
-  margin-bottom:20px;
-  font-size:32px;
-  line-height:1.5;
-}
+    #relatedPostsSection{
+      margin-top:40px;
+    }
 
-#relatedPostsSection{
-  margin-top:40px;
-}
+    #relatedPostsSection h2{
+      margin-bottom:20px;
+      font-size:28px;
+      font-weight:800;
+      color:#fff;
+    }
 
-#relatedPostsSection h2{
-  margin-bottom:20px;
-  font-size:28px;
-  font-weight:800;
-  color:#fff;
-}
+    .loading{
+      grid-column:1/-1;
+      text-align:center;
+      padding:80px 20px;
+      font-size:18px;
+      color:#ddd;
+    }
 
-.loading{
-  grid-column:1/-1;
-  text-align:center;
-  padding:80px 20px;
-  font-size:18px;
-  color:#ddd;
-}
+    ::-webkit-scrollbar{
+      width:8px;
+    }
 
-::-webkit-scrollbar{
-  width:8px;
-}
+    ::-webkit-scrollbar-track{
+      background:#111;
+    }
 
-::-webkit-scrollbar-track{
-  background:#111;
-}
-
-::-webkit-scrollbar-thumb{
-  background:#333;
-  border-radius:30px;
-}
-</style>
+    ::-webkit-scrollbar-thumb{
+      background:#333;
+      border-radius:30px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="pageBadge" class="page-badge"></div>
+  <div id="pageBadge" class="page-badge"></div>
 
-<h1>Latest Movies</h1>
+  <h1>Latest Movies</h1>
 
-<div id="posts" class="grid"></div>
+  <div id="posts" class="grid"></div>
 
-<div class="pagination" id="pagination">
-  <button id="prevBtn">Prev</button>
-  <span id="pageNum">1</span>
-  <button id="nextBtn">Next</button>
-</div>
-
-<div id="detailView">
-  <button id="backBtn" style="margin-bottom:20px;">⬅ Back</button>
-  <div id="detailContent"></div>
-
-  <div id="relatedPostsSection" style="display:none;">
-    <h2>Related Posts</h2>
-    <div id="relatedPosts" class="grid"></div>
+  <div class="pagination" id="pagination">
+    <button id="prevBtn">Prev</button>
+    <span id="pageNum">1</span>
+    <button id="nextBtn">Next</button>
   </div>
-</div>
 
-<script>
-const API = "https://jiorockers-api.salim1monira.workers.dev";
-const POSTS_PER_PAGE = 24;
+  <div id="detailView">
+    <button id="backBtn" style="margin-bottom:20px;">⬅ Back</button>
+    <div id="detailContent"></div>
 
-let currentPage = 1;
-let allPosts = [];
-let relatedPostsData = [];
-
-const postsEl = document.getElementById("posts");
-const detailView = document.getElementById("detailView");
-const detailContent = document.getElementById("detailContent");
-const pagination = document.getElementById("pagination");
-const pageNumEl = document.getElementById("pageNum");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-const backBtn = document.getElementById("backBtn");
-const relatedPostsSection = document.getElementById("relatedPostsSection");
-const relatedPostsEl = document.getElementById("relatedPosts");
-const pageBadge = document.getElementById("pageBadge");
-
-function slugify(text){
-  return text.toString().toLowerCase().trim()
-    .replace(/[^a-z0-9]+/g,'-')
-    .replace(/(^-|-$)/g,'');
-}
-
-function getImage(post){
-  return (
-    post.media$thumbnail?.url?.replace("/s72-c/","/s1200/")
-    ||
-    post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1]
-    ||
-    "https://via.placeholder.com/500x750?text=No+Image"
-  );
-}
-
-function getLabels(post){
-  return (post.category || [])
-    .map(c => c.term)
-    .filter(label => {
-      if(!label) return false;
-      const l = label.toLowerCase().trim();
-      return l !== "movies" && l !== "trending";
-    });
-}
-
-function createCard(post){
-  const image = getImage(post);
-  const title = post.title?.$t || "No Title";
-  const labels = getLabels(post);
-  const slug = slugify(title);
-
-  return `
-    <div class="card" onclick="openPost('${slug}')">
-      <div class="poster-wrap">
-        <img class="poster" src="${image}" loading="lazy" alt="${title}">
-      </div>
-
-      <div class="content">
-        <div class="title">${title}</div>
-
-        <div class="labels">
-          ${labels.slice(0,6).map(label => `<span class="label">${label}</span>`).join("")}
-        </div>
-      </div>
+    <div id="relatedPostsSection" style="display:none;">
+      <h2>Related Posts</h2>
+      <div id="relatedPosts" class="grid"></div>
     </div>
-  `;
-}
+  </div>
 
-function isViewingPost(){
-  return detailView.style.display === "block";
-}
+  <script>
+    const API = "https://jiorockers-api.salim1monira.workers.dev";
+    const POSTS_PER_PAGE = 24;
 
-function updatePageBadge(){
-  if(currentPage > 1 && !isViewingPost()){
-    pageBadge.style.display = "inline-flex";
-    pageBadge.textContent = `Page ${currentPage}`;
-  }else{
-    pageBadge.style.display = "none";
-    pageBadge.textContent = "";
-  }
-}
+    let currentPage = 1;
+    let allPosts = [];
+    let relatedPostsData = [];
 
-function showHome(){
-  postsEl.style.display = "grid";
-  pagination.style.display = "flex";
-  detailView.style.display = "none";
-  updatePageBadge();
-}
+    const postsEl = document.getElementById("posts");
+    const detailView = document.getElementById("detailView");
+    const detailContent = document.getElementById("detailContent");
+    const pagination = document.getElementById("pagination");
+    const pageNumEl = document.getElementById("pageNum");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const backBtn = document.getElementById("backBtn");
+    const relatedPostsSection = document.getElementById("relatedPostsSection");
+    const relatedPostsEl = document.getElementById("relatedPosts");
+    const pageBadge = document.getElementById("pageBadge");
 
-function showDetail(){
-  postsEl.style.display = "none";
-  pagination.style.display = "none";
-  detailView.style.display = "block";
-  updatePageBadge();
-}
-
-function findPostBySlug(slug){
-  return (
-    allPosts.find(p => slugify(p.title?.$t || "") === slug) ||
-    relatedPostsData.find(p => slugify(p.title?.$t || "") === slug)
-  );
-}
-
-async function loadRelatedPosts(currentSlug){
-  try{
-    const res = await fetch(`${API}?page=1&limit=24`);
-    const data = await res.json();
-
-    relatedPostsData = data.posts || [];
-
-    const relatedPosts = relatedPostsData
-      .filter(post => slugify(post.title?.$t || "") !== currentSlug)
-      .slice(0,24);
-
-    if(!relatedPosts.length){
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-      return;
+    function slugify(text){
+      return text.toString().toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g,'-')
+        .replace(/(^-|-$)/g,'');
     }
 
-    relatedPostsSection.style.display = "block";
-    relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
-  }catch(e){
-    relatedPostsSection.style.display = "block";
-    relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
-  }
-}
+    function getImage(post){
+      return (
+        post.media$thumbnail?.url?.replace("/s72-c/","/s1200/")
+        ||
+        post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1]
+        ||
+        "https://via.placeholder.com/500x750?text=No+Image"
+      );
+    }
 
-function openPost(slug, addHistory = true){
-  const post = findPostBySlug(slug);
+    function getLabels(post){
+      return (post.category || [])
+        .map(c => c.term)
+        .filter(label => {
+          if(!label) return false;
+          const l = label.toLowerCase().trim();
+          return l !== "movies" && l !== "trending";
+        });
+    }
 
-  if(!post){
-    showDetail();
-    relatedPostsSection.style.display = "none";
-    detailContent.innerHTML = "<h2>Post not found</h2>";
-    updatePageBadge();
-    return;
-  }
+    function createCard(post){
+      const image = getImage(post);
+      const title = post.title?.$t || "No Title";
+      const labels = getLabels(post);
+      const slug = slugify(title);
 
-  showDetail();
+      return `
+        <div class="card" onclick="openPost('${slug}')">
+          <div class="poster-wrap">
+            <img class="poster" src="${image}" loading="lazy" alt="${title}">
+          </div>
 
-  const title = post.title?.$t || "No Title";
-  const content = post.content?.$t || "";
+          <div class="content">
+            <div class="title">${title}</div>
 
-  detailContent.innerHTML = `
-    <h2 class="detail-title">${title}</h2>
-    <div>${content}</div>
-  `;
+            <div class="labels">
+              ${labels.slice(0,6).map(label => `<span class="label">${label}</span>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
-  if(addHistory){
-    const url = `?page=${currentPage}&post=${slug}`;
-    history.pushState({ page: currentPage, post: slug }, "", url);
-  }
+    function isViewingPost(){
+      return detailView.style.display === "block";
+    }
 
-  loadRelatedPosts(slug);
-  updatePageBadge();
+    function updatePageBadge(){
+      if(currentPage > 1 && !isViewingPost()){
+        pageBadge.style.display = "inline-flex";
+        pageBadge.textContent = `Page ${currentPage}`;
+      }else{
+        pageBadge.style.display = "none";
+        pageBadge.textContent = "";
+      }
+    }
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-}
+    function showHome(){
+      postsEl.style.display = "grid";
+      pagination.style.display = "flex";
+      detailView.style.display = "none";
+      updatePageBadge();
+    }
 
-function goBack(){
-  history.back();
-}
+    function showDetail(){
+      postsEl.style.display = "none";
+      pagination.style.display = "none";
+      detailView.style.display = "block";
+      updatePageBadge();
+    }
 
-function loadPageFromAPI(page, cb){
-  postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
+    function findPostBySlug(slug){
+      return (
+        allPosts.find(p => slugify(p.title?.$t || "") === slug) ||
+        relatedPostsData.find(p => slugify(p.title?.$t || "") === slug)
+      );
+    }
 
-  fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`)
-    .then(res => res.json())
-    .then(data => {
-      allPosts = data.posts || [];
-      postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-      pageNumEl.innerText = page;
-      prevBtn.disabled = page <= 1;
+    async function loadRelatedPosts(currentSlug){
+      try{
+        const res = await fetch(`${API}?page=1&limit=24`);
+        const data = await res.json();
+
+        relatedPostsData = data.posts || [];
+
+        const relatedPosts = relatedPostsData
+          .filter(post => slugify(post.title?.$t || "") !== currentSlug)
+          .slice(0,24);
+
+        if(!relatedPosts.length){
+          relatedPostsSection.style.display = "none";
+          relatedPostsEl.innerHTML = "";
+          return;
+        }
+
+        relatedPostsSection.style.display = "block";
+        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
+      }catch(e){
+        relatedPostsSection.style.display = "block";
+        relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
+      }
+    }
+
+    function openPost(slug, addHistory = true){
+      const post = findPostBySlug(slug);
+
+      if(!post){
+        showDetail();
+        relatedPostsSection.style.display = "none";
+        detailContent.innerHTML = "<h2>Post not found</h2>";
+        updatePageBadge();
+        return;
+      }
+
+      showDetail();
+
+      const title = post.title?.$t || "No Title";
+      const content = post.content?.$t || "";
+
+      detailContent.innerHTML = `
+        <h2 class="detail-title">${title}</h2>
+        <div>${content}</div>
+      `;
+
+      if(addHistory){
+        const url = `?page=${currentPage}&post=${slug}`;
+        history.pushState({ page: currentPage, post: slug }, "", url);
+      }
+
+      loadRelatedPosts(slug);
+      updatePageBadge();
+    }
+
+    function goBack(){
+      history.back();
+    }
+
+    function loadPageFromAPI(page, cb){
+      postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
+
+      fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`)
+        .then(res => res.json())
+        .then(data => {
+          allPosts = data.posts || [];
+          postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
+          pageNumEl.innerText = page;
+          prevBtn.disabled = page <= 1;
+          nextBtn.disabled = false;
+          updatePageBadge();
+
+          if(typeof cb === "function") cb();
+        })
+        .catch(() => {
+          postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
+        });
+    }
+
+    function renderPage(page, addHistory = true){
+      currentPage = page;
       updatePageBadge();
 
-      if(typeof cb === "function") cb();
+      loadPageFromAPI(page, () => {
+        showHome();
+        relatedPostsSection.style.display = "none";
+        relatedPostsEl.innerHTML = "";
 
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    })
-    .catch(() => {
-      postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
-    });
-}
+        if(addHistory){
+          history.pushState({ page }, "", `?page=${page}`);
+        }
 
-function renderPage(page, addHistory = true){
-  currentPage = page;
-  updatePageBadge();
-
-  loadPageFromAPI(page, () => {
-    showHome();
-    relatedPostsSection.style.display = "none";
-    relatedPostsEl.innerHTML = "";
-
-    if(addHistory){
-      history.pushState({ page }, "", `?page=${page}`);
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get("post");
+        if(slug){
+          openPost(slug, false);
+        }
+      });
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("post");
-    if(slug){
-      openPost(slug, false);
+    function initFromURL(){
+      const params = new URLSearchParams(window.location.search);
+      const page = parseInt(params.get("page") || "1", 10);
+      const slug = params.get("post");
+
+      currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+      pageNumEl.innerText = currentPage;
+      prevBtn.disabled = currentPage <= 1;
+      updatePageBadge();
+
+      loadPageFromAPI(currentPage, () => {
+        if(slug){
+          openPost(slug, false);
+        }else{
+          showHome();
+        }
+      });
     }
-  });
-}
 
-function initFromURL(){
-  const params = new URLSearchParams(window.location.search);
-  const page = parseInt(params.get("page") || "1", 10);
-  const slug = params.get("post");
+    prevBtn.onclick = () => {
+      if(currentPage > 1){
+        renderPage(currentPage - 1, true);
+      }
+    };
 
-  currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-  pageNumEl.innerText = currentPage;
-  prevBtn.disabled = currentPage <= 1;
-  updatePageBadge();
+    nextBtn.onclick = () => {
+      renderPage(currentPage + 1, true);
+    };
 
-  loadPageFromAPI(currentPage, () => {
-    if(slug){
-      openPost(slug, false);
-    }else{
-      showHome();
-    }
-  });
-}
+    backBtn.onclick = goBack;
 
-prevBtn.onclick = () => {
-  if(currentPage > 1){
-    renderPage(currentPage - 1, true);
-  }
-};
+    window.onpopstate = () => {
+      const params = new URLSearchParams(window.location.search);
+      const page = parseInt(params.get("page") || "1", 10);
+      const slug = params.get("post");
 
-nextBtn.onclick = () => {
-  renderPage(currentPage + 1, true);
-};
+      currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+      pageNumEl.innerText = currentPage;
+      prevBtn.disabled = currentPage <= 1;
+      updatePageBadge();
 
-backBtn.onclick = goBack;
+      loadPageFromAPI(currentPage, () => {
+        if(slug){
+          openPost(slug, false);
+        }else{
+          showHome();
+          relatedPostsSection.style.display = "none";
+          relatedPostsEl.innerHTML = "";
+        }
+      });
+    };
 
-window.onpopstate = () => {
-  const params = new URLSearchParams(window.location.search);
-  const page = parseInt(params.get("page") || "1", 10);
-  const slug = params.get("post");
-
-  currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-  pageNumEl.innerText = currentPage;
-  prevBtn.disabled = currentPage <= 1;
-  updatePageBadge();
-
-  loadPageFromAPI(currentPage, () => {
-    if(slug){
-      openPost(slug, false);
-    }else{
-      showHome();
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-    }
-  });
-};
-
-initFromURL();
-</script>
+    initFromURL();
+  </script>
 
 </body>
 </html>
