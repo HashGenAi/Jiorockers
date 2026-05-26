@@ -419,7 +419,7 @@
       const title = post.title?.$t || "No Title";
       const labels = getLabels(post);
       const slug = slugify(title);
-      const href = `?page=${pageForLink}&post=${encodeURIComponent(slug)}`;
+      const href = `?post=${encodeURIComponent(slug)}`;
 
       return `
         <a class="card" href="${href}" data-slug="${slug}">
@@ -495,7 +495,7 @@
           return;
         }
 
-        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post, 1)).join("");
+        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
 
         requestAnimationFrame(() => {
           window.scrollTo(0, keepY);
@@ -530,7 +530,7 @@
       backBtn.href = `?page=${currentPage}`;
 
       if(addHistory){
-        const url = `?page=${currentPage}&post=${encodeURIComponent(slug)}`;
+        const url = `?post=${encodeURIComponent(slug)}`;
         history.pushState({ page: currentPage, post: slug }, "", url);
       }
 
