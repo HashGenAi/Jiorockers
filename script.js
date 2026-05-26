@@ -1,4 +1,5 @@
-const POSTS_PER_PAGE = 24;
+
+    const POSTS_PER_PAGE = 24;
     const MAX_JSON_FILES = 500;
 
     const postsEl = document.getElementById("posts");
