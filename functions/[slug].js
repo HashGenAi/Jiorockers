@@ -124,7 +124,10 @@ export async function onRequest(context) {
 <title>${title}</title>
 <link rel="stylesheet" href="/style.css">
 <script src="/script.js" defer></script>
-<meta content="no-referrer" name="referrer"/>
+
+ <meta content="no-referrer" name="referrer"/>
+  <meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
+
 </head>
 
 <body>
