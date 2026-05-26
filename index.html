@@ -7,8 +7,6 @@
 
   <link rel="preload" as="fetch" href="json/posts1.json" type="application/json">
 
-<script src="script.js" defer></script>
-
   <style>
     *{
       margin:0;
@@ -997,6 +995,20 @@
 
     initFromURL();
   </script>
+
+
+<div id="tmdbPopup" class="tmdb-image-popup">
+
+  <span class="tmdb-close">×</span>
+
+  <button class="tmdb-nav tmdb-prev">‹</button>
+
+  <img id="tmdbPopupImg" src="" alt="">
+
+  <button class="tmdb-nav tmdb-next">›</button>
+
+</div>
+
 
 </body>
 </html>
