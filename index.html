@@ -1,5 +1,3 @@
-Here is the full fixed code with the scroll-jump removed and the grid stabilized:
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +14,7 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
 
     html{
       scroll-behavior:smooth;
+      overflow-anchor:none;
     }
 
     body{
@@ -26,6 +25,7 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
       font-family:Arial,sans-serif;
       padding:14px;
       overflow-x:hidden;
+      overflow-anchor:none;
     }
 
     h1{
@@ -98,7 +98,7 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
       border-radius:24px;
       background:linear-gradient(180deg,rgba(28,28,28,.96),rgba(16,16,16,.98));
       border:1px solid rgba(255,255,255,.05);
-      transition:.4s ease;
+      transition:.35s ease;
       cursor:pointer;
       isolation:isolate;
       box-shadow:0 8px 25px rgba(0,0,0,.35);
@@ -115,7 +115,7 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
       animation:borderMove 7s linear infinite;
       opacity:0;
       z-index:-2;
-      transition:.4s ease;
+      transition:.35s ease;
     }
 
     .card:hover::before{
@@ -123,12 +123,8 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
     }
 
     @keyframes borderMove{
-      0%{
-        background-position:0% 50%;
-      }
-      100%{
-        background-position:300% 50%;
-      }
+      0%{ background-position:0% 50%; }
+      100%{ background-position:300% 50%; }
     }
 
     .card:hover{
@@ -274,6 +270,7 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
       border-radius:24px;
       padding:22px;
       box-shadow:0 15px 40px rgba(0,0,0,.45);
+      overflow-anchor:none;
     }
 
     .detail-title{
@@ -284,6 +281,8 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
 
     #relatedPostsSection{
       margin-top:40px;
+      min-height:520px;
+      overflow-anchor:none;
     }
 
     #relatedPostsSection h2{
@@ -291,6 +290,25 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
       font-size:28px;
       font-weight:800;
       color:#fff;
+    }
+
+    #relatedPosts{
+      align-items:start;
+    }
+
+    /* Stop movement in related section */
+    #relatedPosts .card:hover{
+      transform:none;
+      box-shadow:0 8px 25px rgba(0,0,0,.35);
+    }
+
+    #relatedPosts .card:hover .poster{
+      transform:none;
+      filter:brightness(1.02);
+    }
+
+    #relatedPosts .card:hover .title{
+      transform:none;
     }
 
     .loading{
@@ -446,6 +464,11 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
 
     async function loadRelatedPosts(currentSlug){
       try{
+        const keepY = window.scrollY;
+
+        relatedPostsSection.style.display = "block";
+        relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
+
         const res = await fetch(`${API}?page=1&limit=24`);
         const data = await res.json();
 
@@ -461,8 +484,11 @@ Here is the full fixed code with the scroll-jump removed and the grid stabilized
           return;
         }
 
-        relatedPostsSection.style.display = "block";
         relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
+
+        requestAnimationFrame(() => {
+          window.scrollTo(0, keepY);
+        });
       }catch(e){
         relatedPostsSection.style.display = "block";
         relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
