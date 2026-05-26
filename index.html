@@ -15,7 +15,7 @@
     }
 
     html{
-      scroll-behavior:smooth;
+      scroll-behavior:auto;
       overflow-anchor:none;
     }
 
@@ -631,8 +631,19 @@
     let currentPage = 1;
     let ALL_POSTS = [];
     let loadedFileIndexes = new Set();
+    let nextJsonIndex = 1;
     let noMoreFiles = false;
-    let loadingFiles = new Map();
+    let loadingFilePromises = new Map();
+
+    function scrollToTopNow(){
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto"
+      });
+    }
 
     function slugify(text){
       return text.toString().toLowerCase().trim()
@@ -704,6 +715,26 @@
       }
     }
 
+    function updateNavState(){
+      if(currentPage <= 1){
+        prevBtn.classList.add("disabled");
+        prevBtn.setAttribute("aria-disabled", "true");
+      }else{
+        prevBtn.classList.remove("disabled");
+        prevBtn.removeAttribute("aria-disabled");
+      }
+
+      const atKnownLastPage = noMoreFiles && (currentPage * POSTS_PER_PAGE >= ALL_POSTS.length);
+
+      if(atKnownLastPage){
+        nextBtn.classList.add("disabled");
+        nextBtn.setAttribute("aria-disabled", "true");
+      }else{
+        nextBtn.classList.remove("disabled");
+        nextBtn.removeAttribute("aria-disabled");
+      }
+    }
+
     function showHome(){
       postsEl.style.display = "grid";
       pagination.style.display = "flex";
@@ -719,13 +750,18 @@
     }
 
     async function loadJsonFile(index){
-      if(loadedFileIndexes.has(index)) return true;
-      if(loadingFiles.has(index)) return loadingFiles.get(index);
+      if(index > MAX_JSON_FILES) {
+        noMoreFiles = true;
+        return false;
+      }
 
-      const file = getJsonFile(index);
+      if(loadedFileIndexes.has(index)) return true;
+
+      if(loadingFilePromises.has(index)) return loadingFilePromises.get(index);
 
       const promise = (async () => {
         try{
+          const file = getJsonFile(index);
           const res = await fetch(file, { cache: "force-cache" });
 
           if(!res.ok){
@@ -743,51 +779,53 @@
 
           return true;
         }catch(err){
-          console.error("Failed to load:", file, err);
+          console.error("Failed to load:", getJsonFile(index), err);
           return false;
         }finally{
-          loadingFiles.delete(index);
+          loadingFilePromises.delete(index);
         }
       })();
 
-      loadingFiles.set(index, promise);
+      loadingFilePromises.set(index, promise);
       return promise;
+    }
+
+    async function loadNextJsonFile(){
+      if(noMoreFiles) return false;
+
+      const index = nextJsonIndex;
+      nextJsonIndex += 1;
+
+      return await loadJsonFile(index);
     }
 
     async function ensurePostsForPage(page){
       const neededCount = page * POSTS_PER_PAGE;
-      let index = 1;
 
-      while(ALL_POSTS.length < neededCount && index <= MAX_JSON_FILES){
-        if(loadedFileIndexes.has(index)){
-          index++;
-          continue;
-        }
-
-        const ok = await loadJsonFile(index);
+      while(ALL_POSTS.length < neededCount && !noMoreFiles){
+        const ok = await loadNextJsonFile();
         if(!ok) break;
-
-        index++;
       }
     }
 
     async function findPostBySlug(slug){
-      for(let index = 1; index <= MAX_JSON_FILES; index++){
-        if(!loadedFileIndexes.has(index)){
-          const ok = await loadJsonFile(index);
-          if(!ok) break;
-        }
-
+      while(!noMoreFiles){
         const found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
         if(found){
-          const foundIndex = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-          const page = Math.floor(foundIndex / POSTS_PER_PAGE) + 1;
+          const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
+          const page = Math.floor(index / POSTS_PER_PAGE) + 1;
           return { post: found, page };
         }
 
-        if(noMoreFiles && index >= loadedFileIndexes.size){
-          break;
-        }
+        const ok = await loadNextJsonFile();
+        if(!ok) break;
+      }
+
+      const finalFound = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
+      if(finalFound){
+        const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
+        const page = Math.floor(index / POSTS_PER_PAGE) + 1;
+        return { post: finalFound, page };
       }
 
       return null;
@@ -816,7 +854,9 @@
     }
 
     async function openPost(slug, addHistory = true){
+      scrollToTopNow();
       showDetail();
+
       detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
       relatedPostsSection.style.display = "none";
       relatedPostsEl.innerHTML = "";
@@ -826,7 +866,9 @@
       if(!result){
         detailContent.innerHTML = "<h2>Post not found</h2>";
         backBtn.href = `?page=${currentPage}`;
+        updateNavState();
         updatePageBadge();
+        scrollToTopNow();
         return;
       }
 
@@ -836,11 +878,6 @@
       currentPage = foundPage;
       pageNumEl.innerText = currentPage;
 
-      const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
-      prevBtn.href = `?page=${currentPage > 1 ? currentPage - 1 : 1}`;
-      nextBtn.href = `?page=${currentPage < totalPages ? currentPage + 1 : totalPages}`;
-      backBtn.href = `?page=${foundPage}`;
-
       const title = post.title?.$t || "No Title";
       const content = post.content?.$t || "";
 
@@ -848,6 +885,13 @@
         <h2 class="detail-title">${title}</h2>
         <div>${content}</div>
       `;
+
+      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+      const nextPage = currentPage + 1;
+
+      prevBtn.href = `?page=${prevPage}`;
+      nextBtn.href = `?page=${nextPage}`;
+      backBtn.href = `?page=${foundPage}`;
 
       if(addHistory){
         history.pushState(
@@ -858,17 +902,26 @@
       }
 
       await loadRelatedPosts(slug);
+
+      updateNavState();
       updatePageBadge();
+      scrollToTopNow();
     }
 
     async function renderPage(page, addHistory = true){
+      scrollToTopNow();
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
+
       showHome();
 
       await ensurePostsForPage(page);
 
-      const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
-      currentPage = Math.min(Math.max(1, page), totalPages);
+      const totalLoadedPages = Math.max(
+        1,
+        Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE)
+      );
+
+      currentPage = Math.min(Math.max(1, page), totalLoadedPages);
 
       const start = (currentPage - 1) * POSTS_PER_PAGE;
       const end = start + POSTS_PER_PAGE;
@@ -878,52 +931,43 @@
       pageNumEl.innerText = currentPage;
 
       const prevPage = currentPage > 1 ? currentPage - 1 : 1;
-      const nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+      const nextPage = currentPage + 1;
 
       prevBtn.href = `?page=${prevPage}`;
       nextBtn.href = `?page=${nextPage}`;
-
-      if(currentPage <= 1){
-        prevBtn.classList.add("disabled");
-        prevBtn.setAttribute("aria-disabled", "true");
-      }else{
-        prevBtn.classList.remove("disabled");
-        prevBtn.removeAttribute("aria-disabled");
-      }
-
-      if(currentPage >= totalPages && noMoreFiles){
-        nextBtn.classList.add("disabled");
-        nextBtn.setAttribute("aria-disabled", "true");
-      }else{
-        nextBtn.classList.remove("disabled");
-        nextBtn.removeAttribute("aria-disabled");
-      }
+      backBtn.href = `?page=${currentPage}`;
 
       relatedPostsSection.style.display = "none";
       relatedPostsEl.innerHTML = "";
       detailView.style.display = "none";
       pagination.style.display = "flex";
-      updatePageBadge();
 
       if(addHistory){
-        history.pushState({ page }, "", `?page=${currentPage}`);
+        history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
       }
+
+      updateNavState();
+      updatePageBadge();
+      scrollToTopNow();
     }
 
     async function initFromURL(){
+      scrollToTopNow();
+
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
       const slug = params.get("post");
 
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
-      updatePageBadge();
 
       if(slug){
         await openPost(slug, false);
       }else{
         await renderPage(currentPage, false);
       }
+
+      scrollToTopNow();
     }
 
     prevBtn.addEventListener("click", (e) => {
