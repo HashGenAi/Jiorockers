@@ -1196,6 +1196,7 @@
     const searchClear = document.getElementById("searchClear");    
     const searchStatus = document.getElementById("searchStatus");    
     const pageTitleEl = document.querySelector(".page-title");    
+    const brandTitle = document.querySelector(".brand-text h1");    
     
     const searchBtn = document.getElementById("searchBtn");    
     const menuBtn = document.getElementById("menuBtn");    
@@ -1225,6 +1226,12 @@
     function setPageTitleVisible(visible){    
       if(pageTitleEl){    
         pageTitleEl.style.display = visible ? "block" : "none";    
+      }    
+    }    
+    
+    function setBrandTitleVisible(visible){    
+      if(brandTitle){    
+        brandTitle.style.display = visible ? "block" : "none";    
       }    
     }    
     
@@ -1346,6 +1353,7 @@
     
     function showHome(){    
       setPageTitleVisible(!currentSearch);    
+      setBrandTitleVisible(true);    
       postsEl.style.display = "grid";    
       pagination.style.display = currentSearch ? "none" : "flex";    
       detailView.style.display = "none";    
@@ -1354,6 +1362,7 @@
     
     function showDetail(){    
       setPageTitleVisible(false);    
+      setBrandTitleVisible(false);    
       postsEl.style.display = "none";    
       pagination.style.display = "none";    
       detailView.style.display = "block";    
@@ -1516,6 +1525,8 @@
     
       const post = result.post;    
       const foundPage = result.page || 1;    
+      const title = post.title?.$t || "No Title";    
+      document.title = title;    
     
       currentPage = foundPage;    
       pageNumEl.innerText = currentPage;    
@@ -1558,6 +1569,7 @@
       searchClear.classList.remove("show");    
     
       setPageTitleVisible(true);    
+      setBrandTitleVisible(true);    
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;    
     
       await ensurePostsForPage(page);    
