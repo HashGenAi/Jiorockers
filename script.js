@@ -16,7 +16,7 @@
 
   const domainMap = {};
 
-  function readDomains() {
+  function readDomains(){
 
     document
       .querySelectorAll('meta[name="video-domain"]')
@@ -25,7 +25,8 @@
         const id = meta.dataset.id;
 
         if(id){
-          domainMap[id] = meta.content || "";
+          domainMap[id] =
+            meta.content || "";
         }
       });
   }
@@ -36,38 +37,66 @@
 
   function setPoster(root = document){
 
-    root.querySelectorAll(".video-poster").forEach(el => {
+    root
+      .querySelectorAll(".video-wrapper")
+      .forEach(wrapper => {
 
-      // already initialized
-      if(el.dataset.ready) return;
+        const posterBox =
+          wrapper.querySelector(".video-poster");
 
-      el.dataset.ready = "1";
+        if(!posterBox) return;
 
-      const wrapper = el.closest(".video-wrapper");
+        // already initialized
+        if(posterBox.dataset.ready) return;
 
-      const poster =
-        wrapper?.dataset.poster
-        ||
-        document
-          .querySelector('meta[property="og:image"]')
-          ?.content
-        ||
-        fallbackPoster;
+        posterBox.dataset.ready = "1";
 
-      el.innerHTML = `
-        <img
-          src="${poster}"
-          alt=""
-          draggable="false"
-          style="
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-          "
-        >
-      `;
-    });
+        let poster =
+          wrapper.dataset.poster;
+
+        /* =========================
+           TAKE FIRST IMAGE
+           FROM POST CONTENT
+        ========================= */
+
+        if(!poster){
+
+          const firstPostImage =
+            document.querySelector(
+              "#detailContent img"
+            );
+
+          if(firstPostImage){
+
+            poster =
+              firstPostImage.currentSrc
+              ||
+              firstPostImage.src;
+          }
+        }
+
+        /* =========================
+           FALLBACK
+        ========================= */
+
+        if(!poster){
+          poster = fallbackPoster;
+        }
+
+        posterBox.innerHTML = `
+          <img
+            src="${poster}"
+            alt=""
+            draggable="false"
+            style="
+              width:100%;
+              height:100%;
+              object-fit:cover;
+              display:block;
+            "
+          >
+        `;
+      });
   }
 
   /* =========================
@@ -97,7 +126,7 @@
       poster.style.display = "none";
     }
 
-    // load video once
+    // load video only once
     if(!iframe.src){
 
       const domainId =
@@ -183,6 +212,10 @@
       currentImages[currentIndex];
 
     const src =
+      img.currentSrc
+      ||
+      img.src
+      ||
       img.getAttribute("src")
       ||
       img.dataset.src
@@ -226,7 +259,9 @@
     if(!currentImages.length) return;
 
     currentIndex =
-      (currentIndex + 1)
+      (
+        currentIndex + 1
+      )
       %
       currentImages.length;
 
@@ -250,7 +285,7 @@
   }
 
   /* =========================
-     GLOBAL CLICK EVENTS
+     CLICK EVENTS
   ========================= */
 
   document.addEventListener("click", e => {
@@ -299,7 +334,12 @@
 
       if(index !== -1){
 
-        openPopup(index);
+        // wait for render
+        setTimeout(() => {
+
+          openPopup(index);
+
+        }, 50);
       }
 
       return;
