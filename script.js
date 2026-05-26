@@ -1,70 +1,142 @@
 
 (() => {
+
   /* =========================
      SETTINGS
   ========================= */
+
   const countdownPage = "/p/download.html";
+
   const fallbackPoster =
     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
 
   /* =========================
      DOMAIN CACHE
   ========================= */
+
   const domainMap = {};
 
   function readDomains() {
-    document.querySelectorAll('meta[name="video-domain"]').forEach(meta => {
-      const id = meta.dataset.id;
-      if (id) domainMap[id] = meta.content || "";
+
+    document
+      .querySelectorAll('meta[name="video-domain"]')
+      .forEach(meta => {
+
+        const id = meta.dataset.id;
+
+        if(id){
+          domainMap[id] = meta.content || "";
+        }
+      });
+  }
+
+  /* =========================
+     VIDEO POSTER
+  ========================= */
+
+  function setPoster(root = document){
+
+    root.querySelectorAll(".video-poster").forEach(el => {
+
+      // already initialized
+      if(el.dataset.ready) return;
+
+      el.dataset.ready = "1";
+
+      const wrapper = el.closest(".video-wrapper");
+
+      const poster =
+        wrapper?.dataset.poster
+        ||
+        document
+          .querySelector('meta[property="og:image"]')
+          ?.content
+        ||
+        fallbackPoster;
+
+      el.innerHTML = `
+        <img
+          src="${poster}"
+          alt=""
+          draggable="false"
+          style="
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+          "
+        >
+      `;
     });
   }
 
   /* =========================
-     POSTER SETTER
+     PLAY VIDEO
   ========================= */
-  function setPoster(root = document) {
-    const meta = document.querySelector('meta[property="og:image"]');
-    const poster = meta && meta.content ? meta.content : fallbackPoster;
 
-    root.querySelectorAll?.(".video-poster").forEach(el => {
-      el.style.backgroundImage = `url('${poster}')`;
-    });
-  }
+  window.playVideo = function(el){
 
-  /* =========================
-     VIDEO PLAY
-  ========================= */
-  window.playVideo = function (el) {
-    const wrapper = el.closest(".video-wrapper") || el.parentElement;
-    if (!wrapper) return;
+    const wrapper =
+      el.closest(".video-wrapper");
 
-    const iframe = wrapper.querySelector(".video-player");
-    const poster = wrapper.querySelector(".video-poster");
-    if (!iframe) return;
+    if(!wrapper) return;
 
+    const iframe =
+      wrapper.querySelector(".video-player");
+
+    const poster =
+      wrapper.querySelector(".video-poster");
+
+    if(!iframe) return;
+
+    // hide overlay
     el.style.display = "none";
-    if (poster) poster.style.display = "none";
 
-    const domainId = wrapper.dataset.domainId || "";
-    const domain = domainMap[domainId] || "";
-    const path = iframe.dataset.src || "";
+    // hide poster
+    if(poster){
+      poster.style.display = "none";
+    }
 
-    if (!iframe.src) {
-      iframe.src = path.startsWith("http") ? path : (domain + path);
+    // load video once
+    if(!iframe.src){
+
+      const domainId =
+        wrapper.dataset.domainId || "";
+
+      const domain =
+        domainMap[domainId] || "";
+
+      const path =
+        iframe.dataset.src || "";
+
+      iframe.src =
+        path.startsWith("http")
+          ? path
+          : domain + path;
     }
   };
 
   /* =========================
-     DOWNLOAD REDIRECT
+     DOWNLOAD BUTTON
   ========================= */
-  function handleDownloadButton(btn) {
-    const raw = btn.dataset.url || "";
-    if (!raw) return;
 
-    const [path = "", domainKey = ""] = raw.split("|");
-    const domain = domainMap[domainKey] || "";
+  function handleDownload(btn){
 
-    const finalTarget = path.startsWith("http") ? path : (domain + path);
+    const raw =
+      btn.dataset.url || "";
+
+    if(!raw) return;
+
+    const [path = "", domainKey = ""] =
+      raw.split("|");
+
+    const domain =
+      domainMap[domainKey] || "";
+
+    const finalTarget =
+      path.startsWith("http")
+        ? path
+        : domain + path;
 
     const url =
       `${countdownPage}?target=${encodeURIComponent(finalTarget)}&d=${encodeURIComponent(domainKey)}`;
@@ -73,116 +145,235 @@
   }
 
   /* =========================
-     IMAGE POPUP VIEWER
+     POPUP
   ========================= */
+
   let popup = null;
   let popupImg = null;
+
   let currentImages = [];
   let currentIndex = 0;
 
-  function loadPopupElements() {
-    popup = document.getElementById("tmdbPopup");
-    popupImg = document.getElementById("tmdbPopupImg");
+  function loadPopup(){
+
+    popup =
+      document.getElementById("tmdbPopup");
+
+    popupImg =
+      document.getElementById("tmdbPopupImg");
   }
 
-  function updateImage() {
-    if (!popupImg || !currentImages.length) return;
-    popupImg.src = currentImages[currentIndex].src;
+  function refreshGallery(){
+
+    currentImages = Array.from(
+      document.querySelectorAll(
+        ".tmdb-extra-images img"
+      )
+    );
   }
 
-  function openImage(index) {
-    loadPopupElements();
-    if (!popup || !popupImg || !currentImages.length) return;
+  function updatePopupImage(){
+
+    if(
+      !popupImg ||
+      !currentImages.length
+    ) return;
+
+    const img =
+      currentImages[currentIndex];
+
+    const src =
+      img.getAttribute("src")
+      ||
+      img.dataset.src
+      ||
+      "";
+
+    popupImg.src = src;
+  }
+
+  function openPopup(index){
+
+    loadPopup();
+
+    if(
+      !popup ||
+      !popupImg
+    ) return;
 
     currentIndex = index;
-    updateImage();
+
+    updatePopupImage();
+
     popup.classList.add("active");
 
-    history.pushState({ popupOpen: true }, "", window.location.href);
+    history.pushState(
+      { popupOpen:true },
+      "",
+      window.location.href
+    );
   }
 
-  function closePopup() {
-    if (!popup) loadPopupElements();
-    if (popup) popup.classList.remove("active");
+  function closePopup(){
+
+    if(!popup) return;
+
+    popup.classList.remove("active");
   }
 
-  function nextImage() {
-    if (!currentImages.length) return;
-    currentIndex = (currentIndex + 1) % currentImages.length;
-    updateImage();
+  function nextImage(){
+
+    if(!currentImages.length) return;
+
+    currentIndex =
+      (currentIndex + 1)
+      %
+      currentImages.length;
+
+    updatePopupImage();
   }
 
-  function prevImage() {
-    if (!currentImages.length) return;
-    currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
-    updateImage();
-  }
+  function prevImage(){
 
-  function refreshPopupImages() {
-    currentImages = Array.from(document.querySelectorAll(".tmdb-extra-images img"));
+    if(!currentImages.length) return;
+
+    currentIndex =
+      (
+        currentIndex - 1
+        +
+        currentImages.length
+      )
+      %
+      currentImages.length;
+
+    updatePopupImage();
   }
 
   /* =========================
-     EVENT DELEGATION
+     GLOBAL CLICK EVENTS
   ========================= */
+
   document.addEventListener("click", e => {
-    const downloadBtn = e.target.closest(".button-link");
-    if (downloadBtn) {
+
+    /* ========= DOWNLOAD ========= */
+
+    const downloadBtn =
+      e.target.closest(".button-link");
+
+    if(downloadBtn){
+
       e.preventDefault();
-      handleDownloadButton(downloadBtn);
+
+      handleDownload(downloadBtn);
+
       return;
     }
 
-    const overlay = e.target.closest(".video-overlay");
-    if (overlay) {
+    /* ========= VIDEO ========= */
+
+    const overlay =
+      e.target.closest(".video-overlay");
+
+    if(overlay){
+
       e.preventDefault();
-      window.playVideo(overlay);
+
+      playVideo(overlay);
+
       return;
     }
 
-    const thumb = e.target.closest(".tmdb-extra-images img");
-    if (thumb) {
-      refreshPopupImages();
-      const idx = currentImages.indexOf(thumb);
-      if (idx !== -1) openImage(idx);
+    /* ========= GALLERY ========= */
+
+    const galleryImg =
+      e.target.closest(
+        ".tmdb-extra-images img"
+      );
+
+    if(galleryImg){
+
+      refreshGallery();
+
+      const index =
+        currentImages.indexOf(galleryImg);
+
+      if(index !== -1){
+
+        openPopup(index);
+      }
+
       return;
     }
 
-    if (e.target.classList.contains("tmdb-close") || e.target.closest(".tmdb-close")) {
-      e.preventDefault();
+    /* ========= CLOSE ========= */
+
+    if(
+      e.target.closest(".tmdb-close")
+    ){
+
       closePopup();
+
       history.back();
+
       return;
     }
 
-    if (e.target.classList.contains("tmdb-next") || e.target.closest(".tmdb-next")) {
-      e.preventDefault();
+    /* ========= NEXT ========= */
+
+    if(
+      e.target.closest(".tmdb-next")
+    ){
+
       nextImage();
+
       return;
     }
 
-    if (e.target.classList.contains("tmdb-prev") || e.target.closest(".tmdb-prev")) {
-      e.preventDefault();
+    /* ========= PREV ========= */
+
+    if(
+      e.target.closest(".tmdb-prev")
+    ){
+
       prevImage();
+
       return;
     }
 
-    if (popup && e.target === popup) {
+    /* ========= OUTSIDE ========= */
+
+    if(
+      popup &&
+      e.target === popup
+    ){
+
       closePopup();
+
       history.back();
     }
   });
 
-  document.addEventListener("keydown", e => {
-    if (!popup || !popup.classList.contains("active")) return;
+  /* =========================
+     KEYBOARD
+  ========================= */
 
-    switch (e.key) {
+  document.addEventListener("keydown", e => {
+
+    if(
+      !popup ||
+      !popup.classList.contains("active")
+    ) return;
+
+    switch(e.key){
+
       case "ArrowRight":
         nextImage();
         break;
+
       case "ArrowLeft":
         prevImage();
         break;
+
       case "Escape":
         closePopup();
         history.back();
@@ -190,36 +381,112 @@
     }
   });
 
+  /* =========================
+     BACK BUTTON
+  ========================= */
+
   window.addEventListener("popstate", () => {
-    if (popup && popup.classList.contains("active")) {
+
+    if(
+      popup &&
+      popup.classList.contains("active")
+    ){
       closePopup();
     }
   });
 
   /* =========================
-     AUTO-POSTER FOR DYNAMIC HTML
+     MOBILE SWIPE
   ========================= */
-  const observer = new MutationObserver(() => {
-    setPoster();
-  });
 
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  document.addEventListener(
+    "touchstart",
+    e => {
+
+      if(
+        !popup ||
+        !popup.classList.contains("active")
+      ) return;
+
+      touchStartX =
+        e.changedTouches[0].screenX;
+    },
+    { passive:true }
+  );
+
+  document.addEventListener(
+    "touchend",
+    e => {
+
+      if(
+        !popup ||
+        !popup.classList.contains("active")
+      ) return;
+
+      touchEndX =
+        e.changedTouches[0].screenX;
+
+      if(
+        touchStartX - touchEndX > 50
+      ){
+        nextImage();
+      }
+
+      if(
+        touchEndX - touchStartX > 50
+      ){
+        prevImage();
+      }
+    },
+    { passive:true }
+  );
+
+  /* =========================
+     OBSERVE DYNAMIC HTML
+  ========================= */
+
+  const observer =
+    new MutationObserver(() => {
+
+      setPoster();
+    });
+
+  observer.observe(
+    document.body,
+    {
+      childList:true,
+      subtree:true
+    }
+  );
 
   /* =========================
      INIT
   ========================= */
-  function init() {
+
+  function init(){
+
     readDomains();
-    loadPopupElements();
+
+    loadPopup();
+
     setPoster();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      init
+    );
+
+  }else{
+
     init();
   }
+
 })();
