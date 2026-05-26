@@ -342,288 +342,247 @@
       border-radius:30px;
     }
 
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 35vh;
+      gap: 20px;
+    }
 
+    .video-wrapper {
+      width: 100%;
+      max-width: 600px;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      margin-bottom: 20px;
+    }
 
-.video-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;   /* horizontal center */
-  justify-content: center;
-  min-height: 35vh;      /* vertical centering effect */
-  gap: 20px;              /* spacing between videos */
-} 
-  
-  
-.video-wrapper {
-  width: 100%;
-  max-width: 600px;
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #000;
-  aspect-ratio: 16 / 9;
-  margin-bottom: 20px;
-}
+    .video-poster {
+      position: absolute;
+      inset: 0;
+      background-color: #000;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 1;
+    }
 
-/* Poster */
-.video-poster {
-  position: absolute;
-  inset: 0;
-  background-color: #000;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 1;
-}
+    .video-player {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      position: relative;
+      z-index: 2;
+    }
 
-/* Iframe */
-.video-player {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  position: relative;
-  z-index: 2;
-}
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      cursor: pointer;
+    }
 
-/* Overlay */
-.video-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
-  cursor: pointer;
-}
+    .play-button {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #111;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease;
+    }
 
-/* Play button */
-.play-button {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: #111;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-  transition: transform 0.2s ease;
-}
+    .video-overlay:hover .play-button {
+      transform: scale(1.08);
+    }
 
-.video-overlay:hover .play-button {
-  transform: scale(1.08);
-}
-    
-    
-   
-    
-    
-        
-/* =========================
-   TMDB BACKDROP GALLERY CSS
-   (3 columns desktop, 2 mobile)
-   ========================= */
+    .tmdb-extra-images {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 22px;
+      margin-bottom: 10px;
+    }
 
-.tmdb-extra-images {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 22px;
-  margin-bottom: 10px;
-}
+    .tmdb-extra-images img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 14px;
+      cursor: pointer;
+      background: #e9e9e9;
+      display: block;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
 
-.tmdb-extra-images img {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 14px;
-  cursor: pointer;
-  background: #e9e9e9;
-  display: block;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
+    .tmdb-extra-images img:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+    }
 
-.tmdb-extra-images img:hover {
-  transform: scale(1.04);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.18);
-}
+    .tmdb-extra-images img:active {
+      transform: scale(0.98);
+    }
 
-.tmdb-extra-images img:active {
-  transform: scale(0.98);
-}
+    @media (max-width: 900px) {
+      .tmdb-extra-images {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
 
-/* Tablet + Mobile &#8594; 2 columns */
-@media (max-width: 900px) {
-  .tmdb-extra-images {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+    @media (max-width: 500px) {
+      .tmdb-extra-images {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
 
-/* Extra small screens still 2 columns */
-@media (max-width: 500px) {
-  .tmdb-extra-images {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
+      .tmdb-extra-images img {
+        border-radius: 10px;
+      }
+    }
 
-  .tmdb-extra-images img {
-    border-radius: 10px;
-  }
-}    
+    .tmdb-image-popup{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.94);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.25s ease;
+      z-index: 999999;
+      overflow: hidden;
+    }
 
-    
-    
-/* =========================
-   IMAGE POPUP VIEWER
-   ========================= */
+    .tmdb-image-popup.active{
+      opacity: 1;
+      visibility: visible;
+    }
 
-.tmdb-image-popup{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.94);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  opacity: 0;
-  visibility: hidden;
-  transition: 0.25s ease;
-  z-index: 999999;
-  overflow: hidden;
-}
+    .tmdb-image-popup img{
+      max-width: 95%;
+      max-height: 92vh;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      user-select: none;
+      -webkit-user-drag: none;
+      transition: transform 0.2s ease;
+    }
 
-.tmdb-image-popup.active{
-  opacity: 1;
-  visibility: visible;
-}
+    .tmdb-close{
+      position: absolute;
+      top: 16px;
+      right: 22px;
+      font-size: 42px;
+      color: #fff;
+      cursor: pointer;
+      z-index: 10;
+      font-weight: bold;
+    }
 
-.tmdb-image-popup img{
-  max-width: 95%;
-  max-height: 92vh;
-  border-radius: 14px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  user-select: none;
-  -webkit-user-drag: none;
-  transition: transform 0.2s ease;
-}
+    .tmdb-nav{
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
 
-/* Close Button */
-.tmdb-close{
-  position: absolute;
-  top: 16px;
-  right: 22px;
-  font-size: 42px;
-  color: #fff;
-  cursor: pointer;
-  z-index: 10;
-  font-weight: bold;
-}
+    .tmdb-prev{
+      left: 18px;
+    }
 
-/* Navigation Buttons */
-.tmdb-nav{
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 52px;
-  height: 52px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.14);
-  color: #fff;
-  font-size: 28px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  z-index: 10;
-}
+    .tmdb-next{
+      right: 18px;
+    }
 
-.tmdb-prev{
-  left: 18px;
-}
+    .tmdb-nav:hover{
+      background: rgba(255,255,255,0.25);
+    }
 
-.tmdb-next{
-  right: 18px;
-}
+    @media (max-width:600px){
+      .tmdb-nav{
+        width: 42px;
+        height: 42px;
+        font-size: 22px;
+      }
 
-.tmdb-nav:hover{
-  background: rgba(255,255,255,0.25);
-}
+      .tmdb-prev{
+        left: 10px;
+      }
 
-/* Mobile */
-@media (max-width:600px){
+      .tmdb-next{
+        right: 10px;
+      }
+    }
 
-  .tmdb-nav{
-    width: 42px;
-    height: 42px;
-    font-size: 22px;
-  }
-
-  .tmdb-prev{
-    left: 10px;
-  }
-
-  .tmdb-next{
-    right: 10px;
-  }
-
-}
-  
-  
-  
     .button-container{
-  text-align:center;
-  margin-top:50px;
-}
+      text-align:center;
+      margin-top:50px;
+    }
 
-/* buttons */
-.button-link{
-  background:#ff2e44;
-  color:#fff;
-  padding:12px 25px;
-  border-radius:6px;
-  font-size:16px;
-  display:block;          /* show one under another */
-  cursor:pointer;
-  transition:background .3s;
-  user-select:none;
-  margin:10px auto;
-  width:200px;
-  text-align:center;
-}
+    .button-link{
+      background:#ff2e44;
+      color:#fff;
+      padding:12px 25px;
+      border-radius:6px;
+      font-size:16px;
+      display:block;
+      cursor:pointer;
+      transition:background .3s;
+      user-select:none;
+      margin:10px auto;
+      width:200px;
+      text-align:center;
+    }
 
-.button-link:hover{
-  background:#e62438;
-}
-   
-    
-    
-    
-    /* Blue Button */
-.blue-button {
-    background-color: #e50914;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
+    .button-link:hover{
+      background:#e62438;
+    }
 
-.blue-button:hover {
-    background-color: #e50914;
-    transform: scale(1.05);
-}
+    .blue-button {
+      background-color: #e50914;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
 
-.blue-button:active {
-    background-color: #e50914;
-    transform: scale(1);
-}
-    
+    .blue-button:hover {
+      background-color: #e50914;
+      transform: scale(1.05);
+    }
 
-
-
+    .blue-button:active {
+      background-color: #e50914;
+      transform: scale(1);
+    }
   </style>
 </head>
 
@@ -652,14 +611,22 @@
   </div>
 
   <script>
-    const API = "https://jiorockers-api.salim1monira.workers.dev";
     const POSTS_PER_PAGE = 24;
     const MAX_SEARCH_PAGES = 80;
+
+    const JSON_FILES = [
+      "json/posts1.json",
+      "json/posts2.json",
+      "json/posts3.json",
+      "json/posts4.json"
+    ];
 
     let currentPage = 1;
     let allPosts = [];
     let relatedPostsData = [];
     let postPageCache = new Map();
+    let ALL_POSTS = [];
+    let jsonLoaded = false;
 
     const postsEl = document.getElementById("posts");
     const detailView = document.getElementById("detailView");
@@ -690,13 +657,15 @@
     }
 
     function getLabels(post){
-      return (post.category || [])
+      const labels = (post.category || [])
         .map(c => c.term)
         .filter(label => {
           if(!label) return false;
           const l = label.toLowerCase().trim();
           return l !== "movies" && l !== "trending";
         });
+
+      return labels;
     }
 
     function createCard(post){
@@ -751,54 +720,61 @@
       updatePageBadge();
     }
 
+    async function loadAllJsonFiles(){
+      if(jsonLoaded) return;
+
+      const settled = await Promise.allSettled(
+        JSON_FILES.map(async (file) => {
+          const res = await fetch(file, { cache: "no-store" });
+          if(!res.ok){
+            throw new Error(`Failed to load ${file}`);
+          }
+          return res.json();
+        })
+      );
+
+      ALL_POSTS = [];
+
+      for(const item of settled){
+        if(item.status === "fulfilled"){
+          const data = item.value;
+          const entries = data?.feed?.entry || [];
+          ALL_POSTS.push(...entries);
+        }else{
+          console.error(item.reason);
+        }
+      }
+
+      jsonLoaded = true;
+    }
+
     async function fetchPage(page){
       if(postPageCache.has(page)){
         return postPageCache.get(page);
       }
 
-      const res = await fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`);
-      const data = await res.json();
-      const posts = data.posts || [];
+      await loadAllJsonFiles();
+
+      const start = (page - 1) * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const posts = ALL_POSTS.slice(start, end);
+
       postPageCache.set(page, posts);
       return posts;
     }
 
     async function findPostBySlug(slug){
-      const searched = new Set();
+      await loadAllJsonFiles();
 
-      const currentPagePosts = allPosts || [];
-      let found = currentPagePosts.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: currentPage };
+      let found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
+      if(!found){
+        return null;
       }
 
-      found = relatedPostsData.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: currentPage };
-      }
+      const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
+      const page = Math.floor(index / POSTS_PER_PAGE) + 1;
 
-      const firstPagePosts = await fetchPage(1);
-      found = firstPagePosts.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: 1 };
-      }
-      searched.add(1);
-
-      for(let page = 2; page <= MAX_SEARCH_PAGES; page++){
-        if(searched.has(page)) continue;
-
-        const posts = await fetchPage(page);
-        if(!posts.length) break;
-
-        found = posts.find(p => slugify(p.title?.$t || "") === slug);
-        if(found){
-          return { post: found, page };
-        }
-
-        if(posts.length < POSTS_PER_PAGE) break;
-      }
-
-      return null;
+      return { post: found, page };
     }
 
     async function loadRelatedPosts(currentSlug){
@@ -808,14 +784,13 @@
         relatedPostsSection.style.display = "block";
         relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
 
-        const res = await fetch(`${API}?page=1&limit=24`);
-        const data = await res.json();
+        await loadAllJsonFiles();
 
-        relatedPostsData = data.posts || [];
-
-        const relatedPosts = relatedPostsData
+        const relatedPosts = ALL_POSTS
           .filter(post => slugify(post.title?.$t || "") !== currentSlug)
           .slice(0,24);
+
+        relatedPostsData = relatedPosts;
 
         if(!relatedPosts.length){
           relatedPostsSection.style.display = "none";
@@ -854,8 +829,10 @@
 
       currentPage = foundPage;
       pageNumEl.innerText = currentPage;
+
+      const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
       prevBtn.href = `?page=${currentPage > 1 ? currentPage - 1 : 1}`;
-      nextBtn.href = `?page=${currentPage + 1}`;
+      nextBtn.href = `?page=${currentPage < totalPages ? currentPage + 1 : totalPages}`;
       backBtn.href = `?page=${foundPage}`;
 
       const title = post.title?.$t || "No Title";
@@ -878,42 +855,55 @@
       updatePageBadge();
     }
 
-    function loadPageFromAPI(page, cb){
+    async function loadPageFromAPI(page, cb){
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
-      fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`)
-        .then(res => res.json())
-        .then(data => {
-          allPosts = data.posts || [];
-          postPageCache.set(page, allPosts);
+      try{
+        await loadAllJsonFiles();
 
-          postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-          pageNumEl.innerText = page;
+        const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
+        currentPage = Math.min(Math.max(1, page), totalPages);
 
-          const prevPage = page > 1 ? page - 1 : 1;
-          const nextPage = page + 1;
+        allPosts = await fetchPage(currentPage);
 
-          prevBtn.href = `?page=${prevPage}`;
-          nextBtn.href = `?page=${nextPage}`;
+        postsEl.innerHTML = allPosts
+          .slice(0, POSTS_PER_PAGE)
+          .map(post => createCard(post))
+          .join("");
 
-          if(page <= 1){
-            prevBtn.classList.add("disabled");
-            prevBtn.setAttribute("aria-disabled", "true");
-          }else{
-            prevBtn.classList.remove("disabled");
-            prevBtn.removeAttribute("aria-disabled");
-          }
+        pageNumEl.innerText = currentPage;
 
+        const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+        const nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+
+        prevBtn.href = `?page=${prevPage}`;
+        nextBtn.href = `?page=${nextPage}`;
+
+        if(currentPage <= 1){
+          prevBtn.classList.add("disabled");
+          prevBtn.setAttribute("aria-disabled", "true");
+        }else{
+          prevBtn.classList.remove("disabled");
+          prevBtn.removeAttribute("aria-disabled");
+        }
+
+        if(currentPage >= totalPages){
+          nextBtn.classList.add("disabled");
+          nextBtn.setAttribute("aria-disabled", "true");
+        }else{
           nextBtn.classList.remove("disabled");
           nextBtn.removeAttribute("aria-disabled");
+        }
 
-          updatePageBadge();
+        updatePageBadge();
 
-          if(typeof cb === "function") cb();
-        })
-        .catch(() => {
-          postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
-        });
+        if(typeof cb === "function"){
+          cb();
+        }
+      }catch(err){
+        console.error(err);
+        postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
+      }
     }
 
     function renderPage(page, addHistory = true){
@@ -939,7 +929,9 @@
       });
     }
 
-    function initFromURL(){
+    async function initFromURL(){
+      await loadAllJsonFiles();
+
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
       const slug = params.get("post");
@@ -948,7 +940,7 @@
       pageNumEl.innerText = currentPage;
       updatePageBadge();
 
-      loadPageFromAPI(currentPage, async () => {
+      await loadPageFromAPI(currentPage, async () => {
         if(slug){
           await openPost(slug, false);
         }else{
@@ -969,6 +961,10 @@
     });
 
     nextBtn.addEventListener("click", (e) => {
+      if(nextBtn.classList.contains("disabled")){
+        e.preventDefault();
+        return;
+      }
       e.preventDefault();
       renderPage(currentPage + 1, true);
     });
@@ -998,252 +994,7 @@
     };
 
     initFromURL();
-  
-(() => {
-
-  /* =========================
-     DOMAIN CACHE
-  ========================= */
-  const domainMap = {};
-
-  document.querySelectorAll('meta[name="video-domain"]').forEach(meta => {
-    const id = meta.dataset.id;
-    domainMap[id] = meta.content;
-  });
-
-  /* =========================
-     SET POSTER
-  ========================= */
-  function setPoster() {
-
-    const meta = document.querySelector('meta[property="og:image"]');
-
-    const fallback =
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
-
-    const poster =
-      meta && meta.content
-        ? meta.content
-        : fallback;
-
-    document.querySelectorAll(".video-poster").forEach(el => {
-      el.style.backgroundImage = `url('${poster}')`;
-    });
-  }
-
-  /* =========================
-     PLAY VIDEO
-  ========================= */
-  window.playVideo = function (el) {
-
-    const wrapper = el.parentElement;
-
-    if (!wrapper) return;
-
-    const iframe = wrapper.querySelector(".video-player");
-    const poster = wrapper.querySelector(".video-poster");
-
-    if (!iframe) return;
-
-    // hide play button + poster
-    el.style.display = "none";
-
-    if (poster) {
-      poster.style.display = "none";
-    }
-
-    // get domain
-    const domainId = wrapper.dataset.domainId;
-    const domain = domainMap[domainId] || "";
-
-    // load iframe only once
-    if (!iframe.src) {
-
-      const path = iframe.dataset.src || "";
-
-      iframe.src = domain + path;
-    }
-  };
-
-  /* =========================
-     IMAGE POPUP VIEWER
-  ========================= */
-
-  const popup = document.getElementById("tmdbPopup");
-  const popupImg = document.getElementById("tmdbPopupImg");
-
-  if (popup && popupImg) {
-
-    const images = document.querySelectorAll(".tmdb-extra-images img");
-
-    let currentIndex = 0;
-
-    function updateImage() {
-      popupImg.src = images[currentIndex].src;
-    }
-
-    function openImage(index) {
-
-      currentIndex = index;
-
-      updateImage();
-
-      popup.classList.add("active");
-
-      history.pushState(
-        { popupOpen: true },
-        "",
-        window.location.href
-      );
-    }
-
-    function closePopup() {
-      popup.classList.remove("active");
-    }
-
-    function nextImage() {
-
-      currentIndex =
-        (currentIndex + 1) % images.length;
-
-      updateImage();
-    }
-
-    function prevImage() {
-
-      currentIndex =
-        (currentIndex - 1 + images.length) % images.length;
-
-      updateImage();
-    }
-
-    // thumbnail click
-    images.forEach((img, index) => {
-      img.addEventListener("click", () => {
-        openImage(index);
-      });
-    });
-
-    // next button
-    document.querySelector(".tmdb-next")?.addEventListener(
-      "click",
-      nextImage
-    );
-
-    // prev button
-    document.querySelector(".tmdb-prev")?.addEventListener(
-      "click",
-      prevImage
-    );
-
-    // close button
-    document.querySelector(".tmdb-close")?.addEventListener(
-      "click",
-      () => {
-        closePopup();
-        history.back();
-      }
-    );
-
-    // outside click
-    popup.addEventListener("click", e => {
-
-      if (e.target === popup) {
-        closePopup();
-        history.back();
-      }
-    });
-
-    // keyboard support
-    document.addEventListener("keydown", e => {
-
-      if (!popup.classList.contains("active")) return;
-
-      switch (e.key) {
-
-        case "ArrowRight":
-          nextImage();
-          break;
-
-        case "ArrowLeft":
-          prevImage();
-          break;
-
-        case "Escape":
-          closePopup();
-          history.back();
-          break;
-      }
-    });
-
-    // back button support
-    window.addEventListener("popstate", () => {
-
-      if (popup.classList.contains("active")) {
-        closePopup();
-      }
-    });
-
-    /* =========================
-       MOBILE SWIPE
-    ========================= */
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    popupImg.addEventListener("touchstart", e => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-
-    popupImg.addEventListener("touchend", e => {
-
-      touchEndX = e.changedTouches[0].screenX;
-
-      if (touchStartX - touchEndX > 50) {
-        nextImage();
-      }
-
-      if (touchEndX - touchStartX > 50) {
-        prevImage();
-      }
-    });
-  }
-
-  /* =========================
-     DOWNLOAD REDIRECT
-  ========================= */
-
-  const countdownPage = "/p/download.html";
-
-  document.querySelectorAll(".button-link").forEach(btn => {
-
-    btn.addEventListener("click", function (e) {
-
-      e.preventDefault();
-
-      const raw = this.dataset.url;
-
-      if (!raw) return;
-
-      const [path, domainKey] = raw.split("|");
-
-      const url =
-        `${countdownPage}?target=${encodeURIComponent(path)}&d=${encodeURIComponent(domainKey)}`;
-
-      window.location.href = url;
-    });
-  });
-
-  /* =========================
-     INIT
-  ========================= */
-
-  document.addEventListener("DOMContentLoaded", () => {
-    setPoster();
-  });
-
-})();
-</script>
+  </script>
 
 </body>
 </html>
