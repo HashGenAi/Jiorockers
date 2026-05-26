@@ -371,10 +371,12 @@
   <script>
     const API = "https://jiorockers-api.salim1monira.workers.dev";
     const POSTS_PER_PAGE = 24;
+    const MAX_SEARCH_PAGES = 80;
 
     let currentPage = 1;
     let allPosts = [];
     let relatedPostsData = [];
+    let postPageCache = new Map();
 
     const postsEl = document.getElementById("posts");
     const detailView = document.getElementById("detailView");
@@ -414,7 +416,7 @@
         });
     }
 
-    function createCard(post, pageForLink = currentPage){
+    function createCard(post){
       const image = getImage(post);
       const title = post.title?.$t || "No Title";
       const labels = getLabels(post);
@@ -466,11 +468,54 @@
       updatePageBadge();
     }
 
-    function findPostBySlug(slug){
-      return (
-        allPosts.find(p => slugify(p.title?.$t || "") === slug) ||
-        relatedPostsData.find(p => slugify(p.title?.$t || "") === slug)
-      );
+    async function fetchPage(page){
+      if(postPageCache.has(page)){
+        return postPageCache.get(page);
+      }
+
+      const res = await fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`);
+      const data = await res.json();
+      const posts = data.posts || [];
+      postPageCache.set(page, posts);
+      return posts;
+    }
+
+    async function findPostBySlug(slug){
+      const searched = new Set();
+
+      const currentPagePosts = allPosts || [];
+      let found = currentPagePosts.find(p => slugify(p.title?.$t || "") === slug);
+      if(found){
+        return { post: found, page: currentPage };
+      }
+
+      found = relatedPostsData.find(p => slugify(p.title?.$t || "") === slug);
+      if(found){
+        return { post: found, page: currentPage };
+      }
+
+      const firstPagePosts = await fetchPage(1);
+      found = firstPagePosts.find(p => slugify(p.title?.$t || "") === slug);
+      if(found){
+        return { post: found, page: 1 };
+      }
+      searched.add(1);
+
+      for(let page = 2; page <= MAX_SEARCH_PAGES; page++){
+        if(searched.has(page)) continue;
+
+        const posts = await fetchPage(page);
+        if(!posts.length) break;
+
+        found = posts.find(p => slugify(p.title?.$t || "") === slug);
+        if(found){
+          return { post: found, page };
+        }
+
+        if(posts.length < POSTS_PER_PAGE) break;
+      }
+
+      return null;
     }
 
     async function loadRelatedPosts(currentSlug){
@@ -506,18 +551,29 @@
       }
     }
 
-    function openPost(slug, addHistory = true){
-      const post = findPostBySlug(slug);
+    async function openPost(slug, addHistory = true){
+      showDetail();
+      detailContent.innerHTML = `<div class="loading">Finding post...</div>`;
+      relatedPostsSection.style.display = "none";
+      relatedPostsEl.innerHTML = "";
 
-      if(!post){
-        showDetail();
-        relatedPostsSection.style.display = "none";
+      const result = await findPostBySlug(slug);
+
+      if(!result){
         detailContent.innerHTML = "<h2>Post not found</h2>";
+        backBtn.href = `?page=${currentPage}`;
         updatePageBadge();
         return;
       }
 
-      showDetail();
+      const post = result.post;
+      const foundPage = result.page || 1;
+
+      currentPage = foundPage;
+      pageNumEl.innerText = currentPage;
+      prevBtn.href = `?page=${currentPage > 1 ? currentPage - 1 : 1}`;
+      nextBtn.href = `?page=${currentPage + 1}`;
+      backBtn.href = `?page=${foundPage}`;
 
       const title = post.title?.$t || "No Title";
       const content = post.content?.$t || "";
@@ -527,14 +583,15 @@
         <div>${content}</div>
       `;
 
-      backBtn.href = `?page=${currentPage}`;
-
       if(addHistory){
-        const url = `?post=${encodeURIComponent(slug)}`;
-        history.pushState({ page: currentPage, post: slug }, "", url);
+        history.pushState(
+          { page: foundPage, post: slug },
+          "",
+          `?post=${encodeURIComponent(slug)}`
+        );
       }
 
-      loadRelatedPosts(slug);
+      await loadRelatedPosts(slug);
       updatePageBadge();
     }
 
@@ -545,7 +602,9 @@
         .then(res => res.json())
         .then(data => {
           allPosts = data.posts || [];
-          postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post, page)).join("");
+          postPageCache.set(page, allPosts);
+
+          postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
           pageNumEl.innerText = page;
 
           const prevPage = page > 1 ? page - 1 : 1;
@@ -606,9 +665,9 @@
       pageNumEl.innerText = currentPage;
       updatePageBadge();
 
-      loadPageFromAPI(currentPage, () => {
+      loadPageFromAPI(currentPage, async () => {
         if(slug){
-          openPost(slug, false);
+          await openPost(slug, false);
         }else{
           showHome();
         }
@@ -644,9 +703,9 @@
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      loadPageFromAPI(currentPage, () => {
+      loadPageFromAPI(currentPage, async () => {
         if(slug){
-          openPost(slug, false);
+          await openPost(slug, false);
         }else{
           showHome();
           relatedPostsSection.style.display = "none";
