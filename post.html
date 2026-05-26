@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Loading...</title>
+  <title id="dynamicTitle">Loading...</title>
 
   <meta content="no-referrer" name="referrer" />
   <meta content="https://hashgen.website" data-id="d1" name="video-domain" />
@@ -448,9 +448,52 @@
       box-shadow:0 8px 24px rgba(0,0,0,.25);
     }
 
-    #postTitle{
+    #detailView{
+      display:block;
       max-width:1000px;
-      margin:0 auto 18px;
+      margin:0 auto;
+      background:linear-gradient(180deg,#1c1c1c,#131313);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 15px 40px rgba(0,0,0,.45);
+      overflow-anchor:none;
+    }
+
+    .nav-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      border:none;
+      outline:none;
+      background:linear-gradient(135deg,#ff004c,#ff5e00);
+      color:#fff;
+      padding:12px 20px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.3s ease;
+      box-shadow:0 10px 20px rgba(255,0,76,.2);
+      min-width:88px;
+    }
+
+    .nav-btn:hover{
+      transform:translateY(-3px) scale(1.03);
+      box-shadow:0 14px 30px rgba(255,0,76,.35);
+    }
+
+    .detail-top{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    #postH1{
       font-size:34px;
       line-height:1.35;
       font-weight:900;
@@ -458,6 +501,7 @@
       background:linear-gradient(90deg,#fff,#bbb);
       -webkit-background-clip:text;
       -webkit-text-fill-color:transparent;
+      margin-bottom:18px;
     }
 
     .labels{
@@ -466,6 +510,7 @@
       align-items:flex-start;
       gap:6px;
       width:100%;
+      margin-bottom:18px;
     }
 
     .label{
@@ -482,18 +527,6 @@
       padding:5px 9px;
       border-radius:40px;
       white-space:nowrap;
-    }
-
-    #detailView{
-      display:block;
-      max-width:1000px;
-      margin:0 auto;
-      background:linear-gradient(180deg,#1c1c1c,#131313);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:24px;
-      padding:22px;
-      box-shadow:0 15px 40px rgba(0,0,0,.45);
-      overflow-anchor:none;
     }
 
     .detail-body{
@@ -558,6 +591,10 @@
       color:#fff;
     }
 
+    #relatedPosts{
+      align-items:start;
+    }
+
     .grid{
       display:grid;
       grid-template-columns:repeat(6,minmax(0,1fr));
@@ -583,7 +620,7 @@
         gap:10px;
       }
 
-      #postTitle{
+      #postH1{
         font-size:28px;
       }
     }
@@ -725,38 +762,6 @@
     ::-webkit-scrollbar-thumb{
       background:#333;
       border-radius:30px;
-    }
-
-    .nav-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      text-decoration:none;
-      border:none;
-      outline:none;
-      background:linear-gradient(135deg,#ff004c,#ff5e00);
-      color:#fff;
-      padding:12px 20px;
-      border-radius:14px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.3s ease;
-      box-shadow:0 10px 20px rgba(255,0,76,.2);
-      min-width:88px;
-    }
-
-    .nav-btn:hover{
-      transform:translateY(-3px) scale(1.03);
-      box-shadow:0 14px 30px rgba(255,0,76,.35);
-    }
-
-    .nav-btn.disabled{
-      opacity:.45;
-      pointer-events:none;
-      cursor:not-allowed;
-      box-shadow:none;
-      transform:none;
     }
 
     .video-container {
@@ -985,6 +990,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -1066,20 +1072,24 @@
   </header>
 
   <div class="app">
-    <div id="pageBadge"></div>
+    <div id="pageBadge" class="page-badge"></div>
     <div id="searchStatus" class="search-status"></div>
 
     <div id="detailView">
-      <h1 id="postTitle">Loading...</h1>
+      <div class="detail-top">
+        <a class="nav-btn" id="backBtn" href="index.html?page=1">⬅ Back</a>
+      </div>
 
-      <div id="postMeta" class="labels" style="margin-bottom:18px;"></div>
+      <h1 id="postH1">Loading...</h1>
+
+      <div id="postMeta" class="labels"></div>
 
       <div id="detailContent" class="detail-body">
         <div class="loading">Loading post...</div>
       </div>
 
       <div class="detail-actions">
-        <a class="button-link" id="backBtn" href="index.html?page=1">← Back</a>
+        <a class="button-link" href="index.html?page=1">Home</a>
       </div>
 
       <div id="relatedPostsSection" style="display:none;">
@@ -1097,10 +1107,9 @@
   </div>
 
   <script>
-    const POSTS_PER_PAGE = 24;
     const MAX_JSON_FILES = 500;
 
-    const postTitleEl = document.getElementById("postTitle");
+    const postH1 = document.getElementById("postH1");
     const postMetaEl = document.getElementById("postMeta");
     const detailContent = document.getElementById("detailContent");
     const relatedPostsSection = document.getElementById("relatedPostsSection");
@@ -1134,8 +1143,6 @@
     let popupIndex = 0;
 
     function scrollToTopNow(){
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
 
@@ -1212,47 +1219,21 @@
       `;
     }
 
-    function setPageBadge(text){
-      if(text){
-        pageBadge.style.display = "inline-flex";
-        pageBadge.textContent = text;
-      }else{
-        pageBadge.style.display = "none";
-        pageBadge.textContent = "";
-      }
-    }
-
-    function updateSearchUI(){
-      if(searchInput.value.trim()){
-        searchClear.classList.add("show");
-      }else{
-        searchClear.classList.remove("show");
-      }
-
-      searchBtn.classList.toggle("active", !!searchInput.value.trim() || document.activeElement === searchInput);
-    }
-
     function getContentHtml(post){
       let content = post.content?.$t || "";
-
       content = content
         .replace(/<h1(\s|>)/gi, "<h2$1")
         .replace(/<\/h1>/gi, "</h2>");
-
       return content;
     }
 
-    function normalizeTitle(title){
-      return title || "No Title";
-    }
-
     function renderDetailHeader(post){
-      const title = normalizeTitle(post.title?.$t);
+      const title = post.title?.$t || "No Title";
       const labels = getLabels(post);
 
       return `
-        <h1 id="postTitle">${title}</h1>
-        <div id="postMeta" class="labels" style="margin-bottom:18px;">
+        <h1 id="postH1">${title}</h1>
+        <div id="postMeta" class="labels">
           ${labels.slice(0, 8).map(label => `<span class="label">${label}</span>`).join("")}
         </div>
       `;
@@ -1269,8 +1250,7 @@
 
       const promise = (async () => {
         try{
-          const file = getJsonFile(index);
-          const res = await fetch(file, { cache: "force-cache" });
+          const res = await fetch(getJsonFile(index), { cache: "force-cache" });
 
           if(!res.ok){
             if(res.status === 404){
@@ -1418,14 +1398,16 @@
       }
 
       if(!slug){
-        detailContent.innerHTML = "<div class='loading'>Post not found.</div>";
-        postTitleEl.textContent = "Post not found";
         document.title = "Post Not Found";
+        postH1.textContent = "Post Not Found";
+        postMetaEl.innerHTML = "";
+        detailContent.innerHTML = "<div class='loading'>This post could not be found.</div>";
+        backBtn.href = "index.html?page=1";
         return;
       }
 
       currentSlug = slug;
-      postTitleEl.textContent = "Loading...";
+      postH1.textContent = "Loading...";
       postMetaEl.innerHTML = "";
       detailContent.innerHTML = "<div class='loading'>Loading post...</div>";
       relatedPostsSection.style.display = "none";
@@ -1437,27 +1419,36 @@
 
       if(!post){
         document.title = "Post Not Found";
-        postTitleEl.textContent = "Post Not Found";
+        postH1.textContent = "Post Not Found";
         postMetaEl.innerHTML = "";
         detailContent.innerHTML = "<div class='loading'>This post could not be found.</div>";
         backBtn.href = "index.html?page=1";
         return;
       }
 
-      const title = normalizeTitle(post.title?.$t);
+      const title = post.title?.$t || "No Title";
       const content = getContentHtml(post);
 
       document.title = title;
-      postTitleEl.textContent = title;
+      postH1.textContent = title;
       postMetaEl.innerHTML = getLabels(post).slice(0, 8).map(label => `<span class="label">${label}</span>`).join("");
       detailContent.innerHTML = content || "<div class='loading'>No content found</div>";
-
       backBtn.href = "index.html?page=1";
 
       bindPopupImages();
       await loadRelatedPosts(slug);
 
       scrollToTopNow();
+    }
+
+    function updateSearchUI(){
+      if(searchInput.value.trim()){
+        searchClear.classList.add("show");
+      }else{
+        searchClear.classList.remove("show");
+      }
+
+      searchBtn.classList.toggle("active", !!searchInput.value.trim() || document.activeElement === searchInput);
     }
 
     searchBtn.addEventListener("click", () => {
