@@ -67,15 +67,11 @@
     }
 
     @media(max-width:1300px){
-      .grid{
-        grid-template-columns:repeat(5,1fr);
-      }
+      .grid{ grid-template-columns:repeat(5,1fr); }
     }
 
     @media(max-width:1050px){
-      .grid{
-        grid-template-columns:repeat(4,1fr);
-      }
+      .grid{ grid-template-columns:repeat(4,1fr); }
     }
 
     @media(max-width:768px){
@@ -375,8 +371,8 @@
 
     let currentPage = 1;
     let allPosts = [];
-    let relatedPostsData = [];
-    let postPageCache = new Map();
+    let postPageCache = new Map();   // page -> posts
+    let slugPageIndex = new Map();   // slug -> page
 
     const postsEl = document.getElementById("posts");
     const detailView = document.getElementById("detailView");
@@ -476,104 +472,85 @@
       const res = await fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`);
       const data = await res.json();
       const posts = data.posts || [];
+
       postPageCache.set(page, posts);
+
+      posts.forEach(post => {
+        const slug = slugify(post.title?.$t || "");
+        if(slug) slugPageIndex.set(slug, page);
+      });
+
       return posts;
     }
 
-    async function findPostBySlug(slug){
-      const searched = new Set();
+    async function loadPageFromAPI(page, cb){
+      postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
-      const currentPagePosts = allPosts || [];
-      let found = currentPagePosts.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: currentPage };
-      }
-
-      found = relatedPostsData.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: currentPage };
-      }
-
-      const firstPagePosts = await fetchPage(1);
-      found = firstPagePosts.find(p => slugify(p.title?.$t || "") === slug);
-      if(found){
-        return { post: found, page: 1 };
-      }
-      searched.add(1);
-
-      for(let page = 2; page <= MAX_SEARCH_PAGES; page++){
-        if(searched.has(page)) continue;
-
-        const posts = await fetchPage(page);
-        if(!posts.length) break;
-
-        found = posts.find(p => slugify(p.title?.$t || "") === slug);
-        if(found){
-          return { post: found, page };
-        }
-
-        if(posts.length < POSTS_PER_PAGE) break;
-      }
-
-      return null;
-    }
-
-    async function loadRelatedPosts(currentSlug){
       try{
-        const keepY = window.scrollY;
+        const posts = await fetchPage(page);
+        allPosts = posts;
 
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
+        postsEl.innerHTML = allPosts
+          .slice(0, POSTS_PER_PAGE)
+          .map(post => createCard(post))
+          .join("");
 
-        const res = await fetch(`${API}?page=1&limit=24`);
-        const data = await res.json();
+        pageNumEl.innerText = page;
 
-        relatedPostsData = data.posts || [];
+        const prevPage = page > 1 ? page - 1 : 1;
+        const nextPage = page + 1;
 
-        const relatedPosts = relatedPostsData
-          .filter(post => slugify(post.title?.$t || "") !== currentSlug)
-          .slice(0,24);
+        prevBtn.href = `?page=${prevPage}`;
+        nextBtn.href = `?page=${nextPage}`;
 
-        if(!relatedPosts.length){
-          relatedPostsSection.style.display = "none";
-          relatedPostsEl.innerHTML = "";
-          return;
+        if(page <= 1){
+          prevBtn.classList.add("disabled");
+          prevBtn.setAttribute("aria-disabled", "true");
+        }else{
+          prevBtn.classList.remove("disabled");
+          prevBtn.removeAttribute("aria-disabled");
         }
 
-        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
+        nextBtn.classList.remove("disabled");
+        nextBtn.removeAttribute("aria-disabled");
 
-        requestAnimationFrame(() => {
-          window.scrollTo(0, keepY);
-        });
+        updatePageBadge();
+
+        if(typeof cb === "function") cb();
       }catch(e){
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
+        postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
       }
     }
 
-    async function openPost(slug, addHistory = true){
-      showDetail();
-      detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
+    function findPostInCurrentPage(slug){
+      return allPosts.find(p => slugify(p.title?.$t || "") === slug) || null;
+    }
 
-      const result = await findPostBySlug(slug);
+    function renderRelatedFromPage(pagePosts, currentSlug){
+      const relatedPosts = pagePosts
+        .filter(post => slugify(post.title?.$t || "") !== currentSlug)
+        .slice(0, 24);
 
-      if(!result){
-        detailContent.innerHTML = "<h2>Post not found</h2>";
-        backBtn.href = `?page=${currentPage}`;
-        updatePageBadge();
+      if(!relatedPosts.length){
+        relatedPostsSection.style.display = "none";
+        relatedPostsEl.innerHTML = "";
         return;
       }
 
-      const post = result.post;
-      const foundPage = result.page || 1;
+      relatedPostsSection.style.display = "block";
+      relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
+    }
 
-      currentPage = foundPage;
-      pageNumEl.innerText = currentPage;
-      prevBtn.href = `?page=${currentPage > 1 ? currentPage - 1 : 1}`;
-      nextBtn.href = `?page=${currentPage + 1}`;
-      backBtn.href = `?page=${foundPage}`;
+    async function openPostFromCurrentPage(slug, addHistory = true){
+      const post = findPostInCurrentPage(slug);
+
+      if(!post){
+        detailContent.innerHTML = "<h2>Post not found</h2>";
+        backBtn.href = `?page=${currentPage}`;
+        showDetail();
+        updatePageBadge();
+        return;
+      }
 
       const title = post.title?.$t || "No Title";
       const content = post.content?.$t || "";
@@ -583,54 +560,134 @@
         <div>${content}</div>
       `;
 
+      backBtn.href = `?page=${currentPage}`;
+      showDetail();
+      renderRelatedFromPage(allPosts, slug);
+
       if(addHistory){
         history.pushState(
-          { page: foundPage, post: slug },
+          { page: currentPage, post: slug },
           "",
           `?post=${encodeURIComponent(slug)}`
         );
       }
 
-      await loadRelatedPosts(slug);
       updatePageBadge();
     }
 
-    function loadPageFromAPI(page, cb){
-      postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
+    async function openPostBySlug(slug, preferredPage = null, addHistory = true){
+      let pageToUse = preferredPage;
 
-      fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`)
-        .then(res => res.json())
-        .then(data => {
-          allPosts = data.posts || [];
-          postPageCache.set(page, allPosts);
+      if(!pageToUse){
+        pageToUse = slugPageIndex.get(slug) || null;
+      }
 
-          postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-          pageNumEl.innerText = page;
+      if(pageToUse && postPageCache.has(pageToUse)){
+        currentPage = pageToUse;
+        pageNumEl.innerText = currentPage;
+        allPosts = postPageCache.get(pageToUse);
 
-          const prevPage = page > 1 ? page - 1 : 1;
-          const nextPage = page + 1;
+        const post = findPostInCurrentPage(slug);
+        if(post){
+          const title = post.title?.$t || "No Title";
+          const content = post.content?.$t || "";
 
-          prevBtn.href = `?page=${prevPage}`;
-          nextBtn.href = `?page=${nextPage}`;
+          detailContent.innerHTML = `
+            <h2 class="detail-title">${title}</h2>
+            <div>${content}</div>
+          `;
 
-          if(page <= 1){
-            prevBtn.classList.add("disabled");
-            prevBtn.setAttribute("aria-disabled", "true");
-          }else{
-            prevBtn.classList.remove("disabled");
-            prevBtn.removeAttribute("aria-disabled");
+          showDetail();
+          renderRelatedFromPage(allPosts, slug);
+          backBtn.href = `?page=${currentPage}`;
+
+          if(addHistory){
+            history.pushState(
+              { page: currentPage, post: slug },
+              "",
+              `?post=${encodeURIComponent(slug)}`
+            );
           }
 
-          nextBtn.classList.remove("disabled");
-          nextBtn.removeAttribute("aria-disabled");
+          updatePageBadge();
+          return;
+        }
+      }
+
+      if(pageToUse){
+        const posts = await fetchPage(pageToUse);
+        currentPage = pageToUse;
+        pageNumEl.innerText = currentPage;
+        allPosts = posts;
+
+        const post = findPostInCurrentPage(slug);
+        if(post){
+          const title = post.title?.$t || "No Title";
+          const content = post.content?.$t || "";
+
+          detailContent.innerHTML = `
+            <h2 class="detail-title">${title}</h2>
+            <div>${content}</div>
+          `;
+
+          showDetail();
+          renderRelatedFromPage(allPosts, slug);
+          backBtn.href = `?page=${currentPage}`;
+
+          if(addHistory){
+            history.pushState(
+              { page: currentPage, post: slug },
+              "",
+              `?post=${encodeURIComponent(slug)}`
+            );
+          }
 
           updatePageBadge();
+          return;
+        }
+      }
 
-          if(typeof cb === "function") cb();
-        })
-        .catch(() => {
-          postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
-        });
+      for(let page = 1; page <= MAX_SEARCH_PAGES; page++){
+        const posts = await fetchPage(page);
+        if(!posts.length) break;
+
+        const match = posts.find(p => slugify(p.title?.$t || "") === slug);
+        if(match){
+          currentPage = page;
+          pageNumEl.innerText = currentPage;
+          allPosts = posts;
+
+          const title = match.title?.$t || "No Title";
+          const content = match.content?.$t || "";
+
+          detailContent.innerHTML = `
+            <h2 class="detail-title">${title}</h2>
+            <div>${content}</div>
+          `;
+
+          showDetail();
+          renderRelatedFromPage(allPosts, slug);
+          backBtn.href = `?page=${currentPage}`;
+
+          if(addHistory){
+            history.pushState(
+              { page: currentPage, post: slug },
+              "",
+              `?post=${encodeURIComponent(slug)}`
+            );
+          }
+
+          updatePageBadge();
+          return;
+        }
+
+        if(posts.length < POSTS_PER_PAGE) break;
+      }
+
+      detailContent.innerHTML = "<h2>Post not found</h2>";
+      showDetail();
+      backBtn.href = `?page=${currentPage}`;
+      updatePageBadge();
     }
 
     function renderPage(page, addHistory = true){
@@ -641,17 +698,10 @@
         showHome();
         relatedPostsSection.style.display = "none";
         relatedPostsEl.innerHTML = "";
-
         backBtn.href = `?page=${page}`;
 
         if(addHistory){
           history.pushState({ page }, "", `?page=${page}`);
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        const slug = params.get("post");
-        if(slug){
-          openPost(slug, false);
         }
       });
     }
@@ -665,14 +715,32 @@
       pageNumEl.innerText = currentPage;
       updatePageBadge();
 
-      loadPageFromAPI(currentPage, async () => {
-        if(slug){
-          await openPost(slug, false);
-        }else{
+      if(slug){
+        openPostBySlug(slug, Number.isFinite(page) && page > 0 ? page : null, false);
+      }else{
+        loadPageFromAPI(currentPage, () => {
           showHome();
-        }
-      });
+        });
+      }
     }
+
+    postsEl.addEventListener("click", (e) => {
+      const card = e.target.closest(".card");
+      if(!card) return;
+      e.preventDefault();
+
+      const slug = card.dataset.slug;
+      openPostFromCurrentPage(slug, true);
+    });
+
+    relatedPostsEl.addEventListener("click", (e) => {
+      const card = e.target.closest(".card");
+      if(!card) return;
+      e.preventDefault();
+
+      const slug = card.dataset.slug;
+      openPostFromCurrentPage(slug, true);
+    });
 
     prevBtn.addEventListener("click", (e) => {
       if(prevBtn.classList.contains("disabled")){
@@ -692,7 +760,8 @@
 
     backBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      history.back();
+      renderPage(currentPage, false);
+      history.replaceState({ page: currentPage }, "", `?page=${currentPage}`);
     });
 
     window.onpopstate = () => {
@@ -703,15 +772,15 @@
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      loadPageFromAPI(currentPage, async () => {
-        if(slug){
-          await openPost(slug, false);
-        }else{
+      if(slug){
+        openPostBySlug(slug, currentPage, false);
+      }else{
+        loadPageFromAPI(currentPage, () => {
           showHome();
           relatedPostsSection.style.display = "none";
           relatedPostsEl.innerHTML = "";
-        }
-      });
+        });
+      }
     };
 
     initFromURL();
