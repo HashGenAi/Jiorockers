@@ -168,11 +168,21 @@ h1{
 
 .labels{
   display:flex;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
   gap:6px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  padding-bottom:2px;
+}
+
+.labels::-webkit-scrollbar{
+  display:none;
 }
 
 .label{
+  flex:0 0 auto;
   background:rgba(255,255,255,.09);
   border:1px solid rgba(255,255,255,.08);
   backdrop-filter:blur(8px);
@@ -182,6 +192,7 @@ h1{
   padding:5px 9px;
   border-radius:40px;
   transition:.3s ease;
+  white-space:nowrap;
 }
 
 .label:hover{
@@ -318,7 +329,11 @@ function getImage(post){
 function getLabels(post){
   return (post.category || [])
     .map(c => c.term)
-    .filter(label => label && label.toLowerCase() !== "movies");
+    .filter(label => {
+      if(!label) return false;
+      const l = label.toLowerCase().trim();
+      return l !== "movies" && l !== "trending";
+    });
 }
 
 function createCard(post){
@@ -337,7 +352,7 @@ function createCard(post){
         <div class="title">${title}</div>
 
         <div class="labels">
-          ${labels.slice(0,3).map(label => `<span class="label">${label}</span>`).join("")}
+          ${labels.slice(0,4).map(label => `<span class="label">${label}</span>`).join("")}
         </div>
       </div>
     </div>
