@@ -62,15 +62,15 @@ export async function onRequest(context) {
   const firstContentImageMatch = rawContent.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
   const firstContentImage = firstContentImageMatch?.[1] || "";
 
-  // IMAGE
+  // Keep the small thumbnail, do not upscale it
   const image =
-    foundPost.media$thumbnail?.url?.replace("/s72-c/", "/s1200/") ||
+    foundPost.media$thumbnail?.url ||
     firstContentImage ||
     "";
 
-  // Remove the first image from body if it matches the featured image
+  // Remove first image from body if it matches the one being shown above
   let content = rawContent;
-  if (firstContentImageMatch?.[0]) {
+  if (firstContentImageMatch?.[0] && firstContentImage) {
     content = content.replace(firstContentImageMatch[0], "");
   }
 
@@ -90,7 +90,7 @@ export async function onRequest(context) {
     const postSlug = slugify(postTitle);
 
     const postImage =
-      post.media$thumbnail?.url?.replace("/s72-c/", "/s1200/") ||
+      post.media$thumbnail?.url ||
       post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1] ||
       "https://via.placeholder.com/500x750?text=No+Image";
 
@@ -118,6 +118,7 @@ export async function onRequest(context) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
 <link rel="stylesheet" href="/style.css">
+<script src="/script.js" defer></script>
 <meta content="no-referrer" name="referrer"/>
 </head>
 
@@ -155,7 +156,7 @@ export async function onRequest(context) {
         <img
           src="${image}"
           alt="${title}"
-          style="width:100%;border-radius:20px;margin-bottom:20px;display:block;">
+          style="width:auto;max-width:220px;border-radius:14px;margin-bottom:20px;display:block;">
       ` : ""}
 
       <div class="detail-body">
@@ -172,8 +173,6 @@ export async function onRequest(context) {
     </div>
   </div>
 </div>
-
-<script src="/script.js" defer></script>
 
 </body>
 </html>
