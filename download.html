@@ -1,0 +1,129 @@
+
+<style>
+
+.wrapper{
+  max-width:500px;
+  margin:60px auto;
+  background:#fff;
+  padding:30px 20px;
+  border-radius:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  text-align:center;
+}
+
+h2{
+  margin:0 0 15px;
+  font-size:24px;
+  color:#222;
+}
+
+p{
+  color:#555;
+  font-size:16px;
+  margin-bottom:20px;
+}
+
+#countdown{
+  font-size:36px;
+  font-weight:bold;
+  color:#ff2e44;
+  margin:20px 0;
+}
+
+#downloadBtn{
+  display:none;
+  background:#ff2e44;
+  color:#fff;
+  text-decoration:none;
+  padding:14px 28px;
+  border-radius:8px;
+  font-size:18px;
+  font-weight:bold;
+  transition:background .3s;
+  pointer-events:none;
+  opacity:0;
+}
+
+#downloadBtn.active{
+  display:inline-block;
+  pointer-events:auto;
+  opacity:1;
+}
+
+#downloadBtn:hover{
+  background:#e62438;
+}
+
+.note{
+  margin-top:20px;
+  font-size:14px;
+  color:#888;
+}
+</style>
+
+
+<div class="wrapper">
+  <h2>Preparing Your Download</h2>
+  <p id="statusText">Please wait, your download link will be ready in:</p>
+
+  <div id="countdown">5</div>
+
+  <a id="downloadBtn" href="javascript:void(0)">Download Now</a>
+
+  <div class="note">Do not close this page while waiting.</div>
+</div>
+
+<script>
+// Countdown seconds
+var seconds = 5;
+var countdownEl = document.getElementById("countdown");
+var downloadBtn = document.getElementById("downloadBtn");
+var statusText = document.getElementById("statusText");
+
+// Get URL params
+var params = new URLSearchParams(window.location.search);
+var targetPath = params.get("target");  // path + params only
+var domainKey = params.get("d");        // domain key
+
+// Domain list
+var domains = {
+  d1: "https://1fichier.com",
+  d2: "https://dailyuploads.net",
+  d3: "https://nitroflare.com",
+  d4: "https://mixdrop.top",
+  d5: "https://vikingfile.com",
+  d6: "https://www.messycloud.ink"
+};
+
+// Determine final link
+var domain = domains[domainKey]; // no default
+var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
+
+// Check target
+if (!targetPath) {
+  countdownEl.innerHTML = "0";
+  statusText.innerHTML = "Invalid download link.";
+} else {
+
+  var timer = setInterval(function(){
+    countdownEl.innerHTML = seconds;
+    seconds--;
+
+    if (seconds < 0) {
+      clearInterval(timer);
+
+      countdownEl.innerHTML = "Ready!";
+      statusText.innerHTML = "Your download link is ready.";
+      downloadBtn.classList.add("active");
+
+      // Click event for download
+      downloadBtn.addEventListener("click", function(){
+        window.location.href = finalLink;
+      });
+    }
+
+  }, 1000);
+
+}
+</script>
+
