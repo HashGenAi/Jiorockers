@@ -251,6 +251,17 @@ button:disabled{
   line-height:1.5;
 }
 
+#relatedPostsSection{
+  margin-top:40px;
+}
+
+#relatedPostsSection h2{
+  margin-bottom:20px;
+  font-size:28px;
+  font-weight:800;
+  color:#fff;
+}
+
 .loading{
   grid-column:1/-1;
   text-align:center;
@@ -289,6 +300,11 @@ button:disabled{
 <div id="detailView">
   <button onclick="goBack()" style="margin-bottom:20px;">⬅ Back</button>
   <div id="detailContent"></div>
+
+  <div id="relatedPostsSection" style="display:none;">
+    <h2>Related Posts</h2>
+    <div id="relatedPosts" class="grid"></div>
+  </div>
 </div>
 
 <script>
@@ -297,6 +313,7 @@ const POSTS_PER_PAGE = 24;
 
 let currentPage = 1;
 let allPosts = [];
+let relatedPostsData = [];
 
 const postsEl = document.getElementById("posts");
 const detailView = document.getElementById("detailView");
@@ -305,6 +322,8 @@ const pagination = document.getElementById("pagination");
 const pageNumEl = document.getElementById("pageNum");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+const relatedPostsSection = document.getElementById("relatedPostsSection");
+const relatedPostsEl = document.getElementById("relatedPosts");
 
 function slugify(text){
   return text.toString().toLowerCase().trim()
@@ -355,28 +374,61 @@ function createCard(post){
   `;
 }
 
-function hideHomeShowDetail(){
-  postsEl.style.display = "none";
-  pagination.style.display = "none";
-  detailView.style.display = "block";
-}
-
-function showHomeHideDetail(){
+function showHome(){
   postsEl.style.display = "grid";
   pagination.style.display = "flex";
   detailView.style.display = "none";
 }
 
+function showDetail(){
+  postsEl.style.display = "none";
+  pagination.style.display = "none";
+  detailView.style.display = "block";
+}
+
+function findPostBySlug(slug){
+  return (
+    allPosts.find(p => slugify(p.title?.$t || "") === slug) ||
+    relatedPostsData.find(p => slugify(p.title?.$t || "") === slug)
+  );
+}
+
+async function loadRelatedPosts(currentSlug){
+  try{
+    const res = await fetch(`${API}?page=1&limit=24`);
+    const data = await res.json();
+
+    relatedPostsData = data.posts || [];
+
+    const relatedPosts = relatedPostsData.filter(post =>
+      slugify(post.title?.$t || "") !== currentSlug
+    ).slice(0,24);
+
+    if(!relatedPosts.length){
+      relatedPostsSection.style.display = "none";
+      relatedPostsEl.innerHTML = "";
+      return;
+    }
+
+    relatedPostsSection.style.display = "block";
+    relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
+  }catch(e){
+    relatedPostsSection.style.display = "block";
+    relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
+  }
+}
+
 function openPost(slug){
-  const post = allPosts.find(p => slugify(p.title?.$t || "") === slug);
+  const post = findPostBySlug(slug);
 
   if(!post){
-    hideHomeShowDetail();
+    showDetail();
+    relatedPostsSection.style.display = "none";
     detailContent.innerHTML = "<h2>Post not found</h2>";
     return;
   }
 
-  hideHomeShowDetail();
+  showDetail();
 
   const title = post.title?.$t || "No Title";
   const content = post.content?.$t || "";
@@ -387,11 +439,24 @@ function openPost(slug){
   `;
 
   history.pushState({ slug }, "", "?post=" + slug);
+
+  loadRelatedPosts(slug);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 function goBack(){
-  showHomeHideDetail();
+  showHome();
+  relatedPostsSection.style.display = "none";
+  relatedPostsEl.innerHTML = "";
   history.pushState({}, "", window.location.pathname);
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 function checkURL(){
@@ -415,7 +480,9 @@ async function loadPosts(page){
     pageNumEl.innerText = page;
     prevBtn.disabled = page <= 1;
 
-    showHomeHideDetail();
+    showHome();
+    relatedPostsSection.style.display = "none";
+    relatedPostsEl.innerHTML = "";
     checkURL();
 
     window.scrollTo({ top: 0, behavior: "smooth" });
