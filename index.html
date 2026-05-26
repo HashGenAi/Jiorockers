@@ -1405,9 +1405,13 @@
       if(noMoreFiles) return false;  
   
       const index = nextJsonIndex;  
-      nextJsonIndex += 1;  
+      const ok = await loadJsonFile(index);  
   
-      return await loadJsonFile(index);  
+      if(ok){  
+        nextJsonIndex += 1;  
+      }  
+  
+      return ok;  
     }  
   
     async function ensurePostsForPage(page){  
@@ -1464,6 +1468,8 @@
   
     async function loadRelatedPosts(currentSlug){  
       try{  
+        await ensureAllPostsLoaded();  
+  
         relatedPostsSection.style.display = "block";  
         relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;  
   
@@ -1551,10 +1557,8 @@
       searchInput.value = "";  
       searchClear.classList.remove("show");  
   
-      postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;  
-  
-      showHome();  
       setPageTitleVisible(true);  
+      postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;  
   
       await ensurePostsForPage(page);  
   
