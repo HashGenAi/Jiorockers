@@ -126,7 +126,7 @@ export async function onRequest(context) {
   <meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
 
   <link rel="stylesheet" href="/style.css">
-  <script src="/script.js" defer></script>
+  <script src="/script.js"></script>
 </head>
 
 <body>
@@ -284,7 +284,7 @@ export async function onRequest(context) {
     </div>
   </div>
 
-<script src="/script.js" defer></script>
+<script src="/script.js"></script>
 </body>
 </html>
 `;
