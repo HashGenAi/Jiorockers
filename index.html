@@ -486,6 +486,14 @@
       transition: transform 0.2s ease;
     }
 
+
+#tmdbPopupImg{
+  max-width:95%;
+  max-height:92vh;
+  display:block;
+}
+
+
     .tmdb-close{
       position: absolute;
       top: 16px;
@@ -611,6 +619,24 @@
       <div id="relatedPosts" class="grid"></div>
     </div>
   </div>
+
+
+
+
+
+
+<div id="tmdbPopup" class="tmdb-image-popup">
+
+  <span class="tmdb-close">×</span>
+
+  <button class="tmdb-nav tmdb-prev">‹</button>
+
+  <img id="tmdbPopupImg" src="" alt="">
+
+  <button class="tmdb-nav tmdb-next">›</button>
+
+</div>
+
 
   <script>
     const POSTS_PER_PAGE = 24;
@@ -995,19 +1021,6 @@
 
     initFromURL();
   </script>
-
-
-<div id="tmdbPopup" class="tmdb-image-popup">
-
-  <span class="tmdb-close">×</span>
-
-  <button class="tmdb-nav tmdb-prev">‹</button>
-
-  <img id="tmdbPopupImg" src="" alt="">
-
-  <button class="tmdb-nav tmdb-next">›</button>
-
-</div>
 
 
 </body>
