@@ -9,7 +9,6 @@
   <script src="script.js" defer></script>
 
   <meta content="no-referrer" name="referrer"/>
-
   <meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
 
   <style>
@@ -50,7 +49,7 @@
       justify-content:space-between;
       gap:14px;
       padding:14px 16px;
-      background:rgba(10,10,10,.72);
+      background:rgba(10,10,10,.76);
       backdrop-filter:blur(16px);
       border-bottom:1px solid rgba(255,255,255,.08);
       box-shadow:0 10px 30px rgba(0,0,0,.22);
@@ -63,11 +62,12 @@
       min-width:0;
       text-decoration:none;
       color:#fff;
+      flex:0 0 auto;
     }
 
     .brand-logo{
-      width:44px;
-      height:44px;
+      width:46px;
+      height:46px;
       border-radius:14px;
       display:grid;
       place-items:center;
@@ -101,6 +101,67 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+    }
+
+    .topbar-center{
+      flex:1;
+      display:flex;
+      justify-content:center;
+      min-width:0;
+    }
+
+    .search-wrap{
+      width:min(560px,100%);
+      position:relative;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:10px 12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.14);
+    }
+
+    .search-icon{
+      width:18px;
+      height:18px;
+      flex:0 0 auto;
+      opacity:.9;
+    }
+
+    .search-input{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font-size:14px;
+    }
+
+    .search-input::placeholder{
+      color:#b8b8b8;
+    }
+
+    .search-clear{
+      border:none;
+      outline:none;
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      width:30px;
+      height:30px;
+      border-radius:10px;
+      cursor:pointer;
+      flex:0 0 auto;
+      font-size:18px;
+      line-height:1;
+      display:none;
+    }
+
+    .search-clear.show{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
     }
 
     .menu-btn{
@@ -143,6 +204,35 @@
     .menu-lines span:nth-child(2){ top:6px; }
     .menu-lines span:nth-child(3){ bottom:0; }
 
+    @media (max-width: 860px){
+      .topbar{
+        flex-wrap:wrap;
+      }
+
+      .topbar-center{
+        order:3;
+        width:100%;
+      }
+
+      .search-wrap{
+        width:100%;
+      }
+    }
+
+    @media (max-width: 768px){
+      .topbar{
+        padding:12px 12px;
+      }
+
+      .brand-text h1{
+        font-size:16px;
+      }
+
+      .brand-text p{
+        font-size:11px;
+      }
+    }
+
     /* =========================
        SIDEBAR
     ========================= */
@@ -167,8 +257,7 @@
       left:0;
       width:min(320px,88vw);
       height:100vh;
-      background:
-        linear-gradient(180deg,rgba(24,24,24,.98),rgba(13,13,13,.98));
+      background:linear-gradient(180deg,rgba(24,24,24,.98),rgba(13,13,13,.98));
       border-right:1px solid rgba(255,255,255,.08);
       box-shadow:20px 0 50px rgba(0,0,0,.45);
       transform:translateX(-100%);
@@ -343,7 +432,7 @@
       box-shadow:0 8px 24px rgba(0,0,0,.25);
     }
 
-    h1.page-title{
+    .page-title{
       text-align:center;
       font-size:34px;
       font-weight:800;
@@ -385,20 +474,8 @@
         font-size:24px;
       }
 
-      h1.page-title{
+      .page-title{
         font-size:28px;
-      }
-
-      .topbar{
-        padding:12px 12px;
-      }
-
-      .brand-text h1{
-        font-size:16px;
-      }
-
-      .brand-text p{
-        font-size:11px;
       }
     }
 
@@ -655,6 +732,14 @@
       padding:80px 20px;
       font-size:18px;
       color:#ddd;
+    }
+
+    .search-status{
+      max-width:1400px;
+      margin:0 auto 14px;
+      color:#cfcfcf;
+      font-size:14px;
+      display:none;
     }
 
     ::-webkit-scrollbar{
@@ -933,7 +1018,7 @@
     <div class="sidebar-content">
       <div class="sidebar-section">
         <div class="sidebar-section-title">Navigation</div>
-        <a class="sidebar-link" href="#top" id="menuHome">
+        <a class="sidebar-link" href="#top">
           <span class="icon">⌂</span>
           <span>Home</span>
         </a>
@@ -948,25 +1033,9 @@
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-section-title">Sections</div>
-        <a class="sidebar-link" href="#top">
-          <span class="icon">▶</span>
-          <span>Trending Now</span>
-        </a>
-        <a class="sidebar-link" href="#top">
-          <span class="icon">✦</span>
-          <span>New Releases</span>
-        </a>
-        <a class="sidebar-link" href="#top">
-          <span class="icon">☻</span>
-          <span>Top Picks</span>
-        </a>
-      </div>
-
-      <div class="sidebar-section">
         <div class="sidebar-section-title">About</div>
         <p class="sidebar-note">
-          Browse the newest movie posts, open details instantly, and use the menu for quick navigation.
+          Browse the newest movie posts, search instantly, open details, and move through pages with a polished layout.
         </p>
       </div>
     </div>
@@ -980,6 +1049,17 @@
         <p>Latest movies, clean layout, quick browsing</p>
       </div>
     </a>
+
+    <div class="topbar-center">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="11" cy="11" r="7" stroke="white" stroke-width="2"/>
+        </svg>
+        <input id="searchInput" class="search-input" type="search" placeholder="Search movies, labels, titles...">
+        <button id="searchClear" class="search-clear" aria-label="Clear search">×</button>
+      </div>
+    </div>
 
     <button class="menu-btn" id="menuBtn" aria-label="Open menu">
       <div class="menu-lines" aria-hidden="true">
@@ -996,9 +1076,11 @@
     <section class="hero">
       <h2>Discover movies in a polished blog style</h2>
       <p>
-        Browse the latest uploads, open any post instantly, and move through pages with a clean mobile-friendly interface.
+        Browse the latest uploads, search by title or category, open any post instantly, and move through pages with a clean mobile-friendly interface.
       </p>
     </section>
+
+    <div id="searchStatus" class="search-status"></div>
 
     <h1 class="page-title">Latest Movies</h1>
 
@@ -1037,6 +1119,9 @@
     const relatedPostsSection = document.getElementById("relatedPostsSection");
     const relatedPostsEl = document.getElementById("relatedPosts");
     const pageBadge = document.getElementById("pageBadge");
+    const searchInput = document.getElementById("searchInput");
+    const searchClear = document.getElementById("searchClear");
+    const searchStatus = document.getElementById("searchStatus");
 
     const menuBtn = document.getElementById("menuBtn");
     const sidebar = document.getElementById("sidebar");
@@ -1049,6 +1134,8 @@
     let nextJsonIndex = 1;
     let noMoreFiles = false;
     let loadingFilePromises = new Map();
+    let currentSearch = "";
+    let searchTimer = null;
 
     function scrollToTopNow(){
       document.documentElement.scrollTop = 0;
@@ -1141,6 +1228,12 @@
     }
 
     function updatePageBadge(){
+      if(currentSearch){
+        pageBadge.style.display = "inline-flex";
+        pageBadge.textContent = `Search: ${currentSearch}`;
+        return;
+      }
+
       if(currentPage > 1 && !isViewingPost()){
         pageBadge.style.display = "inline-flex";
         pageBadge.textContent = `Page ${currentPage}`;
@@ -1151,7 +1244,7 @@
     }
 
     function updateNavState(){
-      if(currentPage <= 1){
+      if(currentPage <= 1 || currentSearch){
         prevBtn.classList.add("disabled");
         prevBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -1161,7 +1254,7 @@
 
       const atKnownLastPage = noMoreFiles && (currentPage * POSTS_PER_PAGE >= ALL_POSTS.length);
 
-      if(atKnownLastPage){
+      if(atKnownLastPage || currentSearch){
         nextBtn.classList.add("disabled");
         nextBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -1172,7 +1265,7 @@
 
     function showHome(){
       postsEl.style.display = "grid";
-      pagination.style.display = "flex";
+      pagination.style.display = currentSearch ? "none" : "flex";
       detailView.style.display = "none";
       updatePageBadge();
     }
@@ -1243,6 +1336,13 @@
       }
     }
 
+    async function ensureAllPostsLoaded(){
+      while(!noMoreFiles && nextJsonIndex <= MAX_JSON_FILES){
+        const ok = await loadNextJsonFile();
+        if(!ok) break;
+      }
+    }
+
     async function findPostBySlug(slug){
       while(!noMoreFiles){
         const found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
@@ -1291,6 +1391,10 @@
     async function openPost(slug, addHistory = true){
       scrollToTopNow();
       closeSidebar();
+      currentSearch = "";
+      searchInput.value = "";
+      searchClear.classList.remove("show");
+      searchStatus.style.display = "none";
       showDetail();
 
       detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
@@ -1347,6 +1451,11 @@
     async function renderPage(page, addHistory = true){
       scrollToTopNow();
       closeSidebar();
+      currentSearch = "";
+      searchStatus.style.display = "none";
+      searchInput.value = "";
+      searchClear.classList.remove("show");
+
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
       showHome();
@@ -1388,6 +1497,78 @@
       scrollToTopNow();
     }
 
+    function matchesSearch(post, query){
+      const title = (post.title?.$t || "").toLowerCase();
+      const labels = getLabels(post).join(" ").toLowerCase();
+      const content = (post.content?.$t || "").toLowerCase();
+      return title.includes(query) || labels.includes(query) || content.includes(query);
+    }
+
+    async function renderSearchResults(query, addHistory = true){
+      const q = query.trim().toLowerCase();
+
+      if(!q){
+        searchStatus.style.display = "none";
+        currentSearch = "";
+        if(addHistory){
+          history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+        }
+        await renderPage(currentPage, false);
+        return;
+      }
+
+      scrollToTopNow();
+      closeSidebar();
+      showHome();
+
+      currentSearch = query.trim();
+      searchStatus.style.display = "block";
+      searchStatus.textContent = `Searching for “${currentSearch}”…`;
+
+      postsEl.innerHTML = `<div class="loading">Searching all posts...</div>`;
+      pagination.style.display = "none";
+
+      await ensureAllPostsLoaded();
+
+      const results = ALL_POSTS.filter(post => matchesSearch(post, q));
+
+      if(results.length){
+        postsEl.innerHTML = results.map(post => createCard(post)).join("");
+        searchStatus.textContent = `Showing ${results.length} result${results.length === 1 ? "" : "s"} for “${currentSearch}”`;
+      }else{
+        postsEl.innerHTML = `<div class="loading">No results found for “${currentSearch}”</div>`;
+        searchStatus.textContent = `No results found for “${currentSearch}”`;
+      }
+
+      pageNumEl.innerText = "Search";
+      prevBtn.classList.add("disabled");
+      nextBtn.classList.add("disabled");
+      prevBtn.setAttribute("aria-disabled", "true");
+      nextBtn.setAttribute("aria-disabled", "true");
+      pageBadge.style.display = "inline-flex";
+      pageBadge.textContent = `Search: ${currentSearch}`;
+
+      if(addHistory){
+        history.pushState({ search: currentSearch }, "", `?search=${encodeURIComponent(currentSearch)}`);
+      }
+
+      scrollToTopNow();
+    }
+
+    function handleSearchInput(){
+      const value = searchInput.value;
+      if(value.trim()){
+        searchClear.classList.add("show");
+      }else{
+        searchClear.classList.remove("show");
+      }
+
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        renderSearchResults(value, true);
+      }, 300);
+    }
+
     async function initFromURL(){
       scrollToTopNow();
       closeSidebar();
@@ -1395,11 +1576,16 @@
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
       const slug = params.get("post");
+      const search = params.get("search") || "";
 
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      if(slug){
+      if(search){
+        searchInput.value = search;
+        searchClear.classList.add("show");
+        await renderSearchResults(search, false);
+      }else if(slug){
         await openPost(slug, false);
       }else{
         await renderPage(currentPage, false);
@@ -1412,7 +1598,7 @@
       e.preventDefault();
       closeSidebar();
       if(prevBtn.classList.contains("disabled")) return;
-      if(currentPage > 1){
+      if(currentPage > 1 && !currentSearch){
         renderPage(currentPage - 1, true);
       }
     });
@@ -1421,7 +1607,9 @@
       e.preventDefault();
       closeSidebar();
       if(nextBtn.classList.contains("disabled")) return;
-      renderPage(currentPage + 1, true);
+      if(!currentSearch){
+        renderPage(currentPage + 1, true);
+      }
     });
 
     backBtn.addEventListener("click", (e) => {
@@ -1436,6 +1624,25 @@
 
     document.addEventListener("keydown", (e) => {
       if(e.key === "Escape") closeSidebar();
+    });
+
+    searchInput.addEventListener("input", handleSearchInput);
+
+    searchInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        renderSearchResults(searchInput.value, true);
+      }
+    });
+
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      searchClear.classList.remove("show");
+      currentSearch = "";
+      searchStatus.style.display = "none";
+      renderPage(currentPage, true);
+      searchInput.focus();
     });
 
     window.addEventListener("popstate", () => {
