@@ -38,6 +38,26 @@ h1{
   -webkit-text-fill-color:transparent;
 }
 
+.page-badge{
+  position:sticky;
+  top:12px;
+  z-index:999;
+  width:fit-content;
+  margin-left:auto;
+  margin-right:auto;
+  margin-bottom:14px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(10px);
+  font-size:13px;
+  font-weight:700;
+  color:#fff;
+  display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+
 .grid{
   display:grid;
   grid-template-columns:repeat(6,minmax(0,1fr));
@@ -287,6 +307,8 @@ button:disabled{
 
 <body>
 
+<div id="pageBadge" class="page-badge"></div>
+
 <h1>Latest Movies</h1>
 
 <div id="posts" class="grid"></div>
@@ -325,6 +347,7 @@ const nextBtn = document.getElementById("nextBtn");
 const backBtn = document.getElementById("backBtn");
 const relatedPostsSection = document.getElementById("relatedPostsSection");
 const relatedPostsEl = document.getElementById("relatedPosts");
+const pageBadge = document.getElementById("pageBadge");
 
 function slugify(text){
   return text.toString().toLowerCase().trim()
@@ -375,16 +398,28 @@ function createCard(post){
   `;
 }
 
+function updatePageBadge(){
+  if(currentPage > 1){
+    pageBadge.style.display = "inline-flex";
+    pageBadge.textContent = `Page ${currentPage}`;
+  }else{
+    pageBadge.style.display = "none";
+    pageBadge.textContent = "";
+  }
+}
+
 function showHome(){
   postsEl.style.display = "grid";
   pagination.style.display = "flex";
   detailView.style.display = "none";
+  updatePageBadge();
 }
 
 function showDetail(){
   postsEl.style.display = "none";
   pagination.style.display = "none";
   detailView.style.display = "block";
+  updatePageBadge();
 }
 
 function findPostBySlug(slug){
@@ -426,6 +461,7 @@ function openPost(slug, addHistory = true){
     showDetail();
     relatedPostsSection.style.display = "none";
     detailContent.innerHTML = "<h2>Post not found</h2>";
+    updatePageBadge();
     return;
   }
 
@@ -445,6 +481,7 @@ function openPost(slug, addHistory = true){
   }
 
   loadRelatedPosts(slug);
+  updatePageBadge();
 
   window.scrollTo({
     top: 0,
@@ -456,11 +493,7 @@ function goBack(){
   history.back();
 }
 
-function renderPage(page, addHistory = true){
-  currentPage = page;
-  pageNumEl.innerText = page;
-  prevBtn.disabled = page <= 1;
-
+function loadPageFromAPI(page, cb){
   postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
   fetch(`${API}?page=${page}&limit=${POSTS_PER_PAGE}`)
@@ -468,28 +501,38 @@ function renderPage(page, addHistory = true){
     .then(data => {
       allPosts = data.posts || [];
       postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-      showHome();
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
+      pageNumEl.innerText = page;
+      prevBtn.disabled = page <= 1;
+      updatePageBadge();
 
-      if(addHistory){
-        history.pushState({ page }, "", `?page=${page}`);
-      }
+      if(typeof cb === "function") cb();
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-
-      const params = new URLSearchParams(window.location.search);
-      const slug = params.get("post");
-      if(slug){
-        openPost(slug, false);
-      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
     })
     .catch(() => {
       postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
     });
+}
+
+function renderPage(page, addHistory = true){
+  currentPage = page;
+  updatePageBadge();
+
+  loadPageFromAPI(page, () => {
+    showHome();
+    relatedPostsSection.style.display = "none";
+    relatedPostsEl.innerHTML = "";
+
+    if(addHistory){
+      history.pushState({ page }, "", `?page=${page}`);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("post");
+    if(slug){
+      openPost(slug, false);
+    }
+  });
 }
 
 function initFromURL(){
@@ -498,26 +541,17 @@ function initFromURL(){
   const slug = params.get("post");
 
   currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+  pageNumEl.innerText = currentPage;
+  prevBtn.disabled = currentPage <= 1;
+  updatePageBadge();
 
-  postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
-
-  fetch(`${API}?page=${currentPage}&limit=${POSTS_PER_PAGE}`)
-    .then(res => res.json())
-    .then(data => {
-      allPosts = data.posts || [];
-      postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-      pageNumEl.innerText = currentPage;
-      prevBtn.disabled = currentPage <= 1;
-
-      if(slug){
-        openPost(slug, false);
-      }else{
-        showHome();
-      }
-    })
-    .catch(() => {
-      postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
-    });
+  loadPageFromAPI(currentPage, () => {
+    if(slug){
+      openPost(slug, false);
+    }else{
+      showHome();
+    }
+  });
 }
 
 prevBtn.onclick = () => {
@@ -540,26 +574,17 @@ window.onpopstate = () => {
   currentPage = Number.isFinite(page) && page > 0 ? page : 1;
   pageNumEl.innerText = currentPage;
   prevBtn.disabled = currentPage <= 1;
+  updatePageBadge();
 
-  postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
-
-  fetch(`${API}?page=${currentPage}&limit=${POSTS_PER_PAGE}`)
-    .then(res => res.json())
-    .then(data => {
-      allPosts = data.posts || [];
-      postsEl.innerHTML = allPosts.slice(0, POSTS_PER_PAGE).map(post => createCard(post)).join("");
-
-      if(slug){
-        openPost(slug, false);
-      }else{
-        showHome();
-        relatedPostsSection.style.display = "none";
-        relatedPostsEl.innerHTML = "";
-      }
-    })
-    .catch(() => {
-      postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
-    });
+  loadPageFromAPI(currentPage, () => {
+    if(slug){
+      openPost(slug, false);
+    }else{
+      showHome();
+      relatedPostsSection.style.display = "none";
+      relatedPostsEl.innerHTML = "";
+    }
+  });
 };
 
 initFromURL();
