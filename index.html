@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Premium Movie Blog</title>
 
+  <link rel="preload" as="fetch" href="json/posts1.json" type="application/json">
+
   <style>
     *{
       margin:0;
@@ -612,21 +614,7 @@
 
   <script>
     const POSTS_PER_PAGE = 24;
-    const MAX_SEARCH_PAGES = 80;
-
-    const JSON_FILES = [
-      "json/posts1.json",
-      "json/posts2.json",
-      "json/posts3.json",
-      "json/posts4.json"
-    ];
-
-    let currentPage = 1;
-    let allPosts = [];
-    let relatedPostsData = [];
-    let postPageCache = new Map();
-    let ALL_POSTS = [];
-    let jsonLoaded = false;
+    const MAX_JSON_FILES = 500;
 
     const postsEl = document.getElementById("posts");
     const detailView = document.getElementById("detailView");
@@ -640,10 +628,20 @@
     const relatedPostsEl = document.getElementById("relatedPosts");
     const pageBadge = document.getElementById("pageBadge");
 
+    let currentPage = 1;
+    let ALL_POSTS = [];
+    let loadedFileIndexes = new Set();
+    let noMoreFiles = false;
+    let loadingFiles = new Map();
+
     function slugify(text){
       return text.toString().toLowerCase().trim()
         .replace(/[^a-z0-9]+/g,'-')
         .replace(/(^-|-$)/g,'');
+    }
+
+    function getJsonFile(index){
+      return `json/posts${index}.json`;
     }
 
     function getImage(post){
@@ -720,77 +718,89 @@
       updatePageBadge();
     }
 
-    async function loadAllJsonFiles(){
-      if(jsonLoaded) return;
+    async function loadJsonFile(index){
+      if(loadedFileIndexes.has(index)) return true;
+      if(loadingFiles.has(index)) return loadingFiles.get(index);
 
-      const settled = await Promise.allSettled(
-        JSON_FILES.map(async (file) => {
-          const res = await fetch(file, { cache: "no-store" });
+      const file = getJsonFile(index);
+
+      const promise = (async () => {
+        try{
+          const res = await fetch(file, { cache: "force-cache" });
+
           if(!res.ok){
-            throw new Error(`Failed to load ${file}`);
+            if(res.status === 404){
+              noMoreFiles = true;
+            }
+            return false;
           }
-          return res.json();
-        })
-      );
 
-      ALL_POSTS = [];
-
-      for(const item of settled){
-        if(item.status === "fulfilled"){
-          const data = item.value;
+          const data = await res.json();
           const entries = data?.feed?.entry || [];
-          ALL_POSTS.push(...entries);
-        }else{
-          console.error(item.reason);
-        }
-      }
 
-      jsonLoaded = true;
+          ALL_POSTS.push(...entries);
+          loadedFileIndexes.add(index);
+
+          return true;
+        }catch(err){
+          console.error("Failed to load:", file, err);
+          return false;
+        }finally{
+          loadingFiles.delete(index);
+        }
+      })();
+
+      loadingFiles.set(index, promise);
+      return promise;
     }
 
-    async function fetchPage(page){
-      if(postPageCache.has(page)){
-        return postPageCache.get(page);
+    async function ensurePostsForPage(page){
+      const neededCount = page * POSTS_PER_PAGE;
+      let index = 1;
+
+      while(ALL_POSTS.length < neededCount && index <= MAX_JSON_FILES){
+        if(loadedFileIndexes.has(index)){
+          index++;
+          continue;
+        }
+
+        const ok = await loadJsonFile(index);
+        if(!ok) break;
+
+        index++;
       }
-
-      await loadAllJsonFiles();
-
-      const start = (page - 1) * POSTS_PER_PAGE;
-      const end = start + POSTS_PER_PAGE;
-      const posts = ALL_POSTS.slice(start, end);
-
-      postPageCache.set(page, posts);
-      return posts;
     }
 
     async function findPostBySlug(slug){
-      await loadAllJsonFiles();
+      for(let index = 1; index <= MAX_JSON_FILES; index++){
+        if(!loadedFileIndexes.has(index)){
+          const ok = await loadJsonFile(index);
+          if(!ok) break;
+        }
 
-      let found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
-      if(!found){
-        return null;
+        const found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
+        if(found){
+          const foundIndex = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
+          const page = Math.floor(foundIndex / POSTS_PER_PAGE) + 1;
+          return { post: found, page };
+        }
+
+        if(noMoreFiles && index >= loadedFileIndexes.size){
+          break;
+        }
       }
 
-      const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-      const page = Math.floor(index / POSTS_PER_PAGE) + 1;
-
-      return { post: found, page };
+      return null;
     }
 
     async function loadRelatedPosts(currentSlug){
       try{
-        const keepY = window.scrollY;
-
         relatedPostsSection.style.display = "block";
         relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
 
-        await loadAllJsonFiles();
-
         const relatedPosts = ALL_POSTS
           .filter(post => slugify(post.title?.$t || "") !== currentSlug)
-          .slice(0,24);
-
-        relatedPostsData = relatedPosts;
+          .slice(0, 24);
 
         if(!relatedPosts.length){
           relatedPostsSection.style.display = "none";
@@ -799,10 +809,6 @@
         }
 
         relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
-
-        requestAnimationFrame(() => {
-          window.scrollTo(0, keepY);
-        });
       }catch(e){
         relatedPostsSection.style.display = "block";
         relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
@@ -855,83 +861,56 @@
       updatePageBadge();
     }
 
-    async function loadPageFromAPI(page, cb){
+    async function renderPage(page, addHistory = true){
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
+      showHome();
 
-      try{
-        await loadAllJsonFiles();
+      await ensurePostsForPage(page);
 
-        const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
-        currentPage = Math.min(Math.max(1, page), totalPages);
+      const totalPages = Math.max(1, Math.ceil(ALL_POSTS.length / POSTS_PER_PAGE));
+      currentPage = Math.min(Math.max(1, page), totalPages);
 
-        allPosts = await fetchPage(currentPage);
+      const start = (currentPage - 1) * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const pagePosts = ALL_POSTS.slice(start, end);
 
-        postsEl.innerHTML = allPosts
-          .slice(0, POSTS_PER_PAGE)
-          .map(post => createCard(post))
-          .join("");
+      postsEl.innerHTML = pagePosts.map(post => createCard(post)).join("");
+      pageNumEl.innerText = currentPage;
 
-        pageNumEl.innerText = currentPage;
+      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+      const nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
 
-        const prevPage = currentPage > 1 ? currentPage - 1 : 1;
-        const nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+      prevBtn.href = `?page=${prevPage}`;
+      nextBtn.href = `?page=${nextPage}`;
 
-        prevBtn.href = `?page=${prevPage}`;
-        nextBtn.href = `?page=${nextPage}`;
+      if(currentPage <= 1){
+        prevBtn.classList.add("disabled");
+        prevBtn.setAttribute("aria-disabled", "true");
+      }else{
+        prevBtn.classList.remove("disabled");
+        prevBtn.removeAttribute("aria-disabled");
+      }
 
-        if(currentPage <= 1){
-          prevBtn.classList.add("disabled");
-          prevBtn.setAttribute("aria-disabled", "true");
-        }else{
-          prevBtn.classList.remove("disabled");
-          prevBtn.removeAttribute("aria-disabled");
-        }
+      if(currentPage >= totalPages && noMoreFiles){
+        nextBtn.classList.add("disabled");
+        nextBtn.setAttribute("aria-disabled", "true");
+      }else{
+        nextBtn.classList.remove("disabled");
+        nextBtn.removeAttribute("aria-disabled");
+      }
 
-        if(currentPage >= totalPages){
-          nextBtn.classList.add("disabled");
-          nextBtn.setAttribute("aria-disabled", "true");
-        }else{
-          nextBtn.classList.remove("disabled");
-          nextBtn.removeAttribute("aria-disabled");
-        }
+      relatedPostsSection.style.display = "none";
+      relatedPostsEl.innerHTML = "";
+      detailView.style.display = "none";
+      pagination.style.display = "flex";
+      updatePageBadge();
 
-        updatePageBadge();
-
-        if(typeof cb === "function"){
-          cb();
-        }
-      }catch(err){
-        console.error(err);
-        postsEl.innerHTML = `<div class="loading">Failed to load posts</div>`;
+      if(addHistory){
+        history.pushState({ page }, "", `?page=${currentPage}`);
       }
     }
 
-    function renderPage(page, addHistory = true){
-      currentPage = page;
-      updatePageBadge();
-
-      loadPageFromAPI(page, () => {
-        showHome();
-        relatedPostsSection.style.display = "none";
-        relatedPostsEl.innerHTML = "";
-
-        backBtn.href = `?page=${page}`;
-
-        if(addHistory){
-          history.pushState({ page }, "", `?page=${page}`);
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        const slug = params.get("post");
-        if(slug){
-          openPost(slug, false);
-        }
-      });
-    }
-
     async function initFromURL(){
-      await loadAllJsonFiles();
-
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
       const slug = params.get("post");
@@ -940,32 +919,24 @@
       pageNumEl.innerText = currentPage;
       updatePageBadge();
 
-      await loadPageFromAPI(currentPage, async () => {
-        if(slug){
-          await openPost(slug, false);
-        }else{
-          showHome();
-        }
-      });
+      if(slug){
+        await openPost(slug, false);
+      }else{
+        await renderPage(currentPage, false);
+      }
     }
 
     prevBtn.addEventListener("click", (e) => {
-      if(prevBtn.classList.contains("disabled")){
-        e.preventDefault();
-        return;
-      }
       e.preventDefault();
+      if(prevBtn.classList.contains("disabled")) return;
       if(currentPage > 1){
         renderPage(currentPage - 1, true);
       }
     });
 
     nextBtn.addEventListener("click", (e) => {
-      if(nextBtn.classList.contains("disabled")){
-        e.preventDefault();
-        return;
-      }
       e.preventDefault();
+      if(nextBtn.classList.contains("disabled")) return;
       renderPage(currentPage + 1, true);
     });
 
@@ -974,24 +945,9 @@
       history.back();
     });
 
-    window.onpopstate = () => {
-      const params = new URLSearchParams(window.location.search);
-      const page = parseInt(params.get("page") || "1", 10);
-      const slug = params.get("post");
-
-      currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-      pageNumEl.innerText = currentPage;
-
-      loadPageFromAPI(currentPage, async () => {
-        if(slug){
-          await openPost(slug, false);
-        }else{
-          showHome();
-          relatedPostsSection.style.display = "none";
-          relatedPostsEl.innerHTML = "";
-        }
-      });
-    };
+    window.addEventListener("popstate", () => {
+      initFromURL();
+    });
 
     initFromURL();
   </script>
