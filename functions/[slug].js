@@ -106,7 +106,9 @@ export async function onRequest(context) {
         </div>
 
         <div class="content">
-          <div class="title">${postTitle}</div>
+          <div class="title">
+            ${postTitle}
+          </div>
         </div>
       </a>
     `;
@@ -117,172 +119,62 @@ export async function onRequest(context) {
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
-  <title>${title}</title>
-
-  <meta content="no-referrer" name="referrer"/>
-  <meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
-
-  <link rel="stylesheet" href="/style.css">
-  <script src="/script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title}</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/script.js" defer></script>
+<meta content="no-referrer" name="referrer"/>
 </head>
 
 <body>
 
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-profile">
-        <div class="sidebar-avatar">M</div>
-
-        <div>
-          <h2>Premium Movies</h2>
-          <p>Fast, clean, modern</p>
-        </div>
-      </div>
-
-      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
+<header class="topbar">
+  <a class="brand" href="/">
+    <div class="brand-logo">M</div>
+    <div class="brand-text">
+      <h1>Premium Movie Blog</h1>
+      <p>Latest movies, clean layout, quick browsing</p>
     </div>
+  </a>
+</header>
 
-    <div class="sidebar-content">
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Navigation</div>
-
-        <a class="sidebar-link" href="/">
-          <span class="icon">⌂</span>
-          <span>Home</span>
-        </a>
-
-        <a class="sidebar-link" href="#detailContent">
-          <span class="icon">★</span>
-          <span>Movie Details</span>
-        </a>
-
-        <a class="sidebar-link" href="#relatedPostsSection">
-          <span class="icon">☰</span>
-          <span>Related Posts</span>
-        </a>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">About</div>
-        <p class="sidebar-note">
-          Browse the newest movie posts, search instantly, and explore related content.
-        </p>
-      </div>
-    </div>
-  </aside>
-
-  <header class="topbar" id="top">
-    <a class="brand" href="/" aria-label="Home">
-      <div class="brand-logo">M</div>
-
-      <div class="brand-text">
-        <h1>Premium Movie Blog</h1>
-        <p>Latest movies, clean layout, quick browsing</p>
-      </div>
+<div class="app">
+  <div id="detailView" style="display:block;max-width:1000px;margin:auto;">
+    <a href="/" class="nav-btn" style="margin-bottom:20px;display:inline-flex;">
+      ⬅ Back
     </a>
 
-    <div class="topbar-center">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M21 21l-4.35-4.35"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <circle cx="11"
-                  cy="11"
-                  r="7"
-                  stroke="white"
-                  stroke-width="2"/>
-        </svg>
+    <div id="detailContent">
+      <h1 class="detail-title">${title}</h1>
 
-        <input
-          id="searchInput"
-          class="search-input"
-          type="search"
-          placeholder="Search movies..."
-        >
+      <div class="labels" style="margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;">
+        ${labels.map(label => `
+          <span class="label">${label}</span>
+        `).join("")}
+      </div>
 
-        <button
-          id="searchClear"
-          class="search-clear"
-          aria-label="Clear search"
-        >
-          ×
-        </button>
+      ${image ? `
+        <img
+          src="${image}"
+          alt="${title}"
+          style="width:100%;max-width:520px;display:block;margin:0 auto 20px auto;border-radius:20px;">
+      ` : ""}
+
+      <div class="detail-body">
+        ${content}
       </div>
     </div>
 
-    <div class="topbar-actions">
-      <button class="menu-btn search-btn" id="searchBtn" aria-label="Focus search">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
-          <path d="M21 21l-4.35-4.35"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <circle cx="11"
-                  cy="11"
-                  r="7"
-                  stroke="white"
-                  stroke-width="2"/>
-        </svg>
-      </button>
+    <div id="relatedPostsSection" style="margin-top:50px;">
+      <h2 style="margin-bottom:20px;font-size:28px;">Related Posts</h2>
 
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
-        <div class="menu-lines" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </button>
-    </div>
-  </header>
-
-  <div class="app">
-    <div id="pageBadge" class="page-badge">Movie Details</div>
-    <div id="searchStatus" class="search-status"></div>
-
-    <div class="page-title">${title}</div>
-
-    <div id="detailView" style="display:block;max-width:1000px;margin:auto;">
-      <a href="/" class="nav-btn" style="margin-bottom:20px;display:inline-flex;">
-        ⬅ Back
-      </a>
-
-      <div id="detailContent">
-        <h1 class="detail-title">${title}</h1>
-
-        <div class="labels" style="margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;">
-          ${labels.map(label => `
-            <span class="label">${label}</span>
-          `).join("")}
-        </div>
-
-        ${image ? `
-          <img
-            src="${image}"
-            alt="${title}"
-            style="width:100%;max-width:520px;display:block;margin:0 auto 20px auto;border-radius:20px;">
-        ` : ""}
-
-        <div class="detail-body">
-          ${content}
-        </div>
-      </div>
-
-      <div id="relatedPostsSection" style="margin-top:50px;">
-        <h2 style="margin-bottom:20px;font-size:28px;">Related Posts</h2>
-
-        <div id="relatedPosts" class="grid">
-          ${relatedPosts.map(post => createCard(post)).join("")}
-        </div>
+      <div id="relatedPosts" class="grid">
+        ${relatedPosts.map(post => createCard(post)).join("")}
       </div>
     </div>
   </div>
+</div>
 
 </body>
 </html>
