@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -18,11 +18,18 @@
   box-sizing:border-box;
 }
 
+html{
+  scroll-behavior:smooth;
+}
+
 body{
-  background:#0f0f0f;
+  background:
+    radial-gradient(circle at top,#1b1b1b 0%,#0f0f0f 40%),
+    #0f0f0f;
   color:#fff;
   font-family:Arial,sans-serif;
   padding:14px;
+  overflow-x:hidden;
 }
 
 /* =========================
@@ -31,10 +38,17 @@ body{
 
 h1{
   text-align:center;
-  margin-bottom:24px;
-  font-size:30px;
+  font-size:34px;
   font-weight:800;
+  margin-bottom:28px;
   letter-spacing:.5px;
+  background:linear-gradient(
+    90deg,
+    #ffffff,
+    #cfcfcf
+  );
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
 /* =========================
@@ -44,25 +58,21 @@ h1{
 .grid{
   display:grid;
   grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:16px;
-  align-items:start;
+  gap:18px;
 }
 
-/* Desktop */
-@media(max-width:1400px){
+@media(max-width:1300px){
   .grid{
     grid-template-columns:repeat(5,1fr);
   }
 }
 
-/* Laptop */
-@media(max-width:1100px){
+@media(max-width:1050px){
   .grid{
     grid-template-columns:repeat(4,1fr);
   }
 }
 
-/* Tablet */
 @media(max-width:768px){
   .grid{
     grid-template-columns:repeat(3,1fr);
@@ -70,7 +80,6 @@ h1{
   }
 }
 
-/* Mobile */
 @media(max-width:480px){
   .grid{
     grid-template-columns:repeat(3,1fr);
@@ -85,49 +94,66 @@ h1{
 .card{
   position:relative;
   overflow:hidden;
-  border-radius:18px;
-  background:linear-gradient(
-    180deg,
-    #1d1d1d 0%,
-    #141414 100%
-  );
-  border:1px solid rgba(255,255,255,.07);
-  box-shadow:
-    0 6px 18px rgba(0,0,0,.35),
-    inset 0 1px 0 rgba(255,255,255,.03);
+  border-radius:24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(28,28,28,.96),
+      rgba(16,16,16,.98)
+    );
+  border:1px solid rgba(255,255,255,.06);
+  transition:.4s ease;
   cursor:pointer;
-  transition:.28s ease;
-  display:flex;
-  flex-direction:column;
-}
-
-.card:hover{
-  transform:translateY(-6px);
+  isolation:isolate;
   box-shadow:
-    0 16px 35px rgba(0,0,0,.45),
-    0 0 18px rgba(229,9,20,.15);
+    0 8px 25px rgba(0,0,0,.35);
 }
 
-/* Glow border */
+/* animated glow border */
 
 .card::before{
   content:"";
   position:absolute;
-  inset:0;
-  padding:1px;
-  border-radius:18px;
-  background:linear-gradient(
-    135deg,
-    rgba(255,255,255,.15),
-    rgba(255,255,255,0),
-    rgba(229,9,20,.2)
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
-  pointer-events:none;
+  inset:-2px;
+  border-radius:26px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,0,102,.35),
+      rgba(0,195,255,.25),
+      rgba(140,255,0,.18),
+      rgba(255,166,0,.25)
+    );
+  background-size:300% 300%;
+  animation:borderMove 7s linear infinite;
+  z-index:-2;
+  opacity:0;
+  transition:.4s ease;
+}
+
+.card:hover::before{
+  opacity:1;
+}
+
+@keyframes borderMove{
+  0%{
+    background-position:0% 50%;
+  }
+  100%{
+    background-position:300% 50%;
+  }
+}
+
+/* hover */
+
+.card:hover{
+  transform:
+    translateY(-8px)
+    scale(1.02);
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.55),
+    0 0 20px rgba(255,0,102,.15);
 }
 
 /* =========================
@@ -135,26 +161,31 @@ h1{
 ========================= */
 
 .poster-wrap{
+  position:relative;
   width:100%;
   aspect-ratio:2/3;
   overflow:hidden;
-  position:relative;
-  background:#222;
+  background:#1b1b1b;
 }
+
+/* image */
 
 .poster{
   width:100%;
   height:100%;
   object-fit:cover;
   display:block;
-  transition:transform .45s ease;
+  transition:
+    transform .7s ease,
+    filter .4s ease;
 }
 
 .card:hover .poster{
-  transform:scale(1.08);
+  transform:scale(1.1);
+  filter:brightness(1.08);
 }
 
-/* Dark overlay */
+/* image dark overlay */
 
 .poster-wrap::after{
   content:"";
@@ -163,30 +194,12 @@ h1{
   right:0;
   bottom:0;
   height:45%;
-  background:linear-gradient(
-    to top,
-    rgba(0,0,0,.9),
-    transparent
-  );
-}
-
-/* =========================
-   QUALITY BADGE
-========================= */
-
-.quality{
-  position:absolute;
-  top:10px;
-  right:10px;
-  z-index:2;
-  background:#e50914;
-  color:#fff;
-  font-size:10px;
-  font-weight:700;
-  padding:5px 8px;
-  border-radius:30px;
-  box-shadow:0 3px 10px rgba(0,0,0,.3);
-  backdrop-filter:blur(6px);
+  background:
+    linear-gradient(
+      to top,
+      rgba(0,0,0,.92),
+      transparent
+    );
 }
 
 /* =========================
@@ -194,10 +207,8 @@ h1{
 ========================= */
 
 .content{
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  flex:1;
+  position:relative;
+  padding:12px;
 }
 
 /* =========================
@@ -207,36 +218,36 @@ h1{
 .title{
   font-size:14px;
   font-weight:700;
-  line-height:1.35;
+  line-height:1.4;
   margin-bottom:8px;
-  transition:.25s ease;
-  min-height:38px;
+  transition:.3s ease;
+  min-height:40px;
 }
 
-/* colorful titles */
+/* dynamic colorful titles */
 
 .card:nth-child(6n+1) .title{
-  color:#ffb86b;
+  color:#ffb86c;
 }
 
 .card:nth-child(6n+2) .title{
-  color:#d7a8ff;
+  color:#d8b4ff;
 }
 
 .card:nth-child(6n+3) .title{
-  color:#81d4fa;
+  color:#7edbff;
 }
 
 .card:nth-child(6n+4) .title{
-  color:#72efb0;
+  color:#7ef0b8;
 }
 
 .card:nth-child(6n+5) .title{
-  color:#ffd166;
+  color:#ffd56a;
 }
 
 .card:nth-child(6n+6) .title{
-  color:#ff8c8c;
+  color:#ff9f9f;
 }
 
 .card:hover .title{
@@ -248,9 +259,23 @@ h1{
 ========================= */
 
 .meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
   font-size:11px;
   color:#9d9d9d;
-  margin-bottom:8px;
+}
+
+/* dot */
+
+.meta::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#ff004c;
+  box-shadow:0 0 10px #ff004c;
 }
 
 /* =========================
@@ -260,29 +285,39 @@ h1{
 .labels{
   display:flex;
   flex-wrap:wrap;
-  gap:5px;
-  margin-bottom:8px;
+  gap:6px;
+  margin-bottom:10px;
 }
 
 .label{
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.06);
+  background:
+    rgba(255,255,255,.06);
+  border:
+    1px solid rgba(255,255,255,.06);
+
   color:#ddd;
   font-size:10px;
-  padding:5px 8px;
+  padding:5px 9px;
   border-radius:30px;
+
   backdrop-filter:blur(8px);
+
+  transition:.3s ease;
+}
+
+.label:hover{
+  background:
+    rgba(255,255,255,.12);
 }
 
 /* =========================
-   DESCRIPTION
+   DESC
 ========================= */
 
 .desc{
   font-size:12px;
   color:#bdbdbd;
-  line-height:1.5;
-  margin-top:auto;
+  line-height:1.55;
 }
 
 /* =========================
@@ -290,33 +325,49 @@ h1{
 ========================= */
 
 .pagination{
-  margin-top:35px;
+  margin-top:40px;
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:12px;
+  gap:14px;
   flex-wrap:wrap;
 }
 
 button{
   border:none;
   outline:none;
-  background:linear-gradient(
-    135deg,
-    #e50914,
-    #b20710
-  );
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff004c,
+      #ff5e00
+    );
+
   color:#fff;
-  padding:12px 18px;
-  border-radius:12px;
+
+  padding:12px 20px;
+
+  border-radius:14px;
+
+  font-size:14px;
   font-weight:700;
+
   cursor:pointer;
-  transition:.25s ease;
-  box-shadow:0 6px 18px rgba(229,9,20,.25);
+
+  transition:.3s ease;
+
+  box-shadow:
+    0 10px 20px rgba(255,0,76,.2);
 }
 
 button:hover{
-  transform:translateY(-2px);
+  transform:
+    translateY(-3px)
+    scale(1.03);
+
+  box-shadow:
+    0 14px 30px rgba(255,0,76,.35);
 }
 
 button:disabled{
@@ -327,6 +378,7 @@ button:disabled{
 #pageNum{
   font-weight:700;
   color:#ddd;
+  font-size:16px;
 }
 
 /* =========================
@@ -336,7 +388,7 @@ button:disabled{
 .loading{
   grid-column:1/-1;
   text-align:center;
-  padding:60px 20px;
+  padding:80px 20px;
   font-size:18px;
   color:#ddd;
 }
@@ -349,12 +401,28 @@ button:disabled{
   display:none;
   max-width:1000px;
   margin:auto;
-  background:#181818;
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:20px;
-  padding:20px;
-  box-shadow:0 10px 35px rgba(0,0,0,.35);
+
+  background:
+    linear-gradient(
+      180deg,
+      #1c1c1c,
+      #131313
+    );
+
+  border:
+    1px solid rgba(255,255,255,.06);
+
+  border-radius:24px;
+
+  padding:22px;
+
+  box-shadow:
+    0 15px 40px rgba(0,0,0,.45);
 }
+
+/* =========================
+   BACK BUTTON
+========================= */
 
 .backBtn{
   margin-bottom:20px;
@@ -368,13 +436,13 @@ button:disabled{
   width:8px;
 }
 
-::-webkit-scrollbar-thumb{
-  background:#333;
-  border-radius:20px;
-}
-
 ::-webkit-scrollbar-track{
   background:#111;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#333;
+  border-radius:30px;
 }
 
 </style>
@@ -387,30 +455,64 @@ button:disabled{
 <div id="posts" class="grid"></div>
 
 <div id="detailView">
-  <button class="backBtn" onclick="goBack()">⬅ Back</button>
+
+  <button
+    class="backBtn"
+    onclick="goBack()">
+    ⬅ Back
+  </button>
+
   <div id="detailContent"></div>
+
 </div>
 
 <div class="pagination">
-  <button id="prevBtn">Prev</button>
+
+  <button id="prevBtn">
+    Prev
+  </button>
+
   <span id="pageNum">1</span>
-  <button id="nextBtn">Next</button>
+
+  <button id="nextBtn">
+    Next
+  </button>
+
 </div>
 
 <script>
 
+/* =========================
+   API
+========================= */
+
 const API =
 "https://jiorockers-api.salim1monira.workers.dev";
+
+/* =========================
+   SETTINGS
+========================= */
+
+const POSTS_PER_PAGE = 24;
 
 let currentPage = 1;
 let allPosts = [];
 
-const POSTS_PER_PAGE = 24;
+/* =========================
+   ELEMENTS
+========================= */
 
-const postsEl = document.getElementById("posts");
-const pageNumEl = document.getElementById("pageNum");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+const postsEl =
+document.getElementById("posts");
+
+const pageNumEl =
+document.getElementById("pageNum");
+
+const prevBtn =
+document.getElementById("prevBtn");
+
+const nextBtn =
+document.getElementById("nextBtn");
 
 const detailView =
 document.getElementById("detailView");
@@ -441,7 +543,7 @@ function getImage(post){
   return (
 
     post.media$thumbnail?.url
-      ?.replace("/s72-c/","/s1000/")
+      ?.replace("/s72-c/","/s1200/")
 
     ||
 
@@ -451,6 +553,7 @@ function getImage(post){
     ||
 
     "https://via.placeholder.com/500x750?text=No+Image"
+
   );
 }
 
@@ -462,7 +565,8 @@ function getSummary(html){
 
   if(!html) return "";
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
   div.innerHTML = html;
 
@@ -478,7 +582,8 @@ function getSummary(html){
 
 function getLabels(post){
 
-  return post.category?.map(c => c.term) || [];
+  return post.category
+    ?.map(c => c.term) || [];
 }
 
 /* =========================
@@ -487,7 +592,8 @@ function getLabels(post){
 
 function createCard(post){
 
-  const image = getImage(post);
+  const image =
+    getImage(post);
 
   const title =
     post.title?.$t || "No Title";
@@ -495,28 +601,31 @@ function createCard(post){
   const summary =
     getSummary(post.content?.$t);
 
-  const labels = getLabels(post);
+  const labels =
+    getLabels(post);
 
   const date =
     new Date(post.published?.$t)
     .toLocaleDateString();
 
-  const slug = slugify(title);
+  const slug =
+    slugify(title);
 
   return `
 
-    <div class="card"
-    onclick="openPost('${slug}')">
+    <div
+      class="card"
+      onclick="openPost('${slug}')"
+    >
 
       <div class="poster-wrap">
 
-        <img class="poster"
-        src="${image}"
-        loading="lazy">
-
-        <div class="quality">
-          HD
-        </div>
+        <img
+          class="poster"
+          src="${image}"
+          loading="lazy"
+          alt="${title}"
+        >
 
       </div>
 
@@ -532,9 +641,11 @@ function createCard(post){
 
         <div class="labels">
 
-          ${labels.slice(0,2).map(l =>
+          ${labels.slice(0,2).map(label =>
 
-            `<span class="label">${l}</span>`
+            `<span class="label">
+              ${label}
+            </span>`
 
           ).join("")}
 
@@ -556,20 +667,24 @@ function createCard(post){
 
 function openPost(slug){
 
-  const post = allPosts.find(p =>
+  const post =
+    allPosts.find(p =>
 
-    slugify(p.title?.$t || "")
-    === slug
-  );
+      slugify(
+        p.title?.$t || ""
+      ) === slug
+    );
 
   if(!post){
 
-    postsEl.style.display = "none";
+    postsEl.style.display =
+      "none";
 
-    detailView.style.display = "block";
+    detailView.style.display =
+      "block";
 
     detailContent.innerHTML =
-    "<h2>Post not found</h2>";
+      "<h2>Post not found</h2>";
 
     return;
   }
@@ -580,16 +695,18 @@ function openPost(slug){
   const content =
     post.content?.$t || "";
 
-  postsEl.style.display = "none";
+  postsEl.style.display =
+    "none";
 
-  detailView.style.display = "block";
+  detailView.style.display =
+    "block";
 
   detailContent.innerHTML = `
 
     <h2 style="
       margin-bottom:20px;
       font-size:32px;
-      line-height:1.4;
+      line-height:1.5;
     ">
       ${title}
     </h2>
@@ -612,9 +729,11 @@ function openPost(slug){
 
 function goBack(){
 
-  postsEl.style.display = "grid";
+  postsEl.style.display =
+    "grid";
 
-  detailView.style.display = "none";
+  detailView.style.display =
+    "none";
 
   history.pushState(
     {},
@@ -634,7 +753,8 @@ function checkURL(){
       window.location.search
     );
 
-  const slug = params.get("post");
+  const slug =
+    params.get("post");
 
   if(slug && allPosts.length){
 
@@ -649,31 +769,45 @@ function checkURL(){
 async function loadPosts(page){
 
   postsEl.innerHTML = `
+
     <div class="loading">
       Loading Premium Movies...
     </div>
+
   `;
 
   try{
 
-    const res = await fetch(
-      API +
-      "?page=" + page +
-      "&limit=" + POSTS_PER_PAGE
-    );
+    const res =
+      await fetch(
 
-    const data = await res.json();
+        API +
 
-    allPosts = data.posts || [];
+        "?page=" + page +
+
+        "&limit=" + POSTS_PER_PAGE
+      );
+
+    const data =
+      await res.json();
+
+    allPosts =
+      data.posts || [];
 
     postsEl.innerHTML =
-      allPosts.map(
-        p => createCard(p)
-      ).join("");
 
-    pageNumEl.innerText = page;
+      allPosts
+      .slice(0,24)
+      .map(post =>
+        createCard(post)
+      )
+      .join("");
 
-    prevBtn.disabled = page <= 1;
+    pageNumEl.innerText =
+      page;
+
+    prevBtn.disabled =
+      page <= 1;
 
     checkURL();
 
@@ -685,9 +819,11 @@ async function loadPosts(page){
   }catch(e){
 
     postsEl.innerHTML = `
+
       <div class="loading">
         Failed to load posts
       </div>
+
     `;
   }
 }
@@ -726,6 +862,7 @@ window.onpopstate = () => {
   if(location.search.includes("post=")){
 
     const slug =
+
       new URLSearchParams(
         location.search
       ).get("post");
@@ -739,7 +876,7 @@ window.onpopstate = () => {
 };
 
 /* =========================
-   INITIAL LOAD
+   INIT
 ========================= */
 
 loadPosts(currentPage);
