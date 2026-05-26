@@ -4,9 +4,9 @@ export async function onRequest(context) {
   const slug = params.slug || "";
   const pathname = new URL(request.url).pathname;
 
-  // Let static files work normally
+  // Let static files load normally
   if (/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|json|txt|xml)$/i.test(pathname)) {
-    return fetch(request);
+    return context.next();
   }
 
   function slugify(text) {
@@ -58,7 +58,6 @@ export async function onRequest(context) {
 
   // POST DATA
   const title = foundPost.title?.$t || "No Title";
-
   const content = foundPost.content?.$t || "";
 
   // IMAGE
@@ -80,7 +79,6 @@ export async function onRequest(context) {
   // CARD FUNCTION
   function createCard(post) {
     const postTitle = post.title?.$t || "No Title";
-
     const postSlug = slugify(postTitle);
 
     const postImage =
@@ -90,19 +88,15 @@ export async function onRequest(context) {
 
     return `
       <a class="card" href="/${postSlug}">
-
         <div class="poster-wrap">
           <img class="poster" src="${postImage}" alt="${postTitle}">
         </div>
 
         <div class="content">
-
           <div class="title">
             ${postTitle}
           </div>
-
         </div>
-
       </a>
     `;
   }
@@ -113,31 +107,22 @@ export async function onRequest(context) {
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>${title}</title>
-
 <link rel="stylesheet" href="/style.css">
-
 <meta content="no-referrer" name="referrer"/>
-
 </head>
 
 <body>
 
 <header class="topbar">
-
   <a class="brand" href="/">
-
     <div class="brand-logo">
       M
     </div>
 
     <div class="brand-text">
-
       <h1>
         Premium Movie Blog
       </h1>
@@ -145,98 +130,56 @@ export async function onRequest(context) {
       <p>
         Latest movies, clean layout, quick browsing
       </p>
-
     </div>
-
   </a>
-
 </header>
 
 <div class="app">
+  <div id="detailView" style="display:block;max-width:1000px;margin:auto;">
+    <a href="/" class="nav-btn" style="margin-bottom:20px;display:inline-flex;">
+      ⬅ Back
+    </a>
 
-<div id="detailView"
-style="
-display:block;
-max-width:1000px;
-margin:auto;
-">
+    <div id="detailContent">
+      <h1 class="detail-title">
+        ${title}
+      </h1>
 
-<a
-href="/"
-class="nav-btn"
-style="
-margin-bottom:20px;
-display:inline-flex;
-">
-⬅ Back
-</a>
+      <div class="labels" style="margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;">
+        ${labels
+          .map(label => `
+            <span class="label">
+              ${label}
+            </span>
+          `)
+          .join("")}
+      </div>
 
-<div id="detailContent">
+      ${
+        image
+          ? `
+        <img
+          src="${image}"
+          style="width:100%;border-radius:20px;margin-bottom:20px;display:block;">
+      `
+          : ""
+      }
 
-<h1 class="detail-title">
-${title}
-</h1>
+      <div class="detail-body">
+        ${content}
+      </div>
+    </div>
 
-<div class="labels"
-style="
-margin-bottom:18px;
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-">
+    <div id="relatedPostsSection" style="margin-top:50px;">
+      <h2 style="margin-bottom:20px;font-size:28px;">
+        Related Posts
+      </h2>
 
-${labels.map(label => `
-<span class="label">
-${label}
-</span>
-`).join("")}
-
-</div>
-
-${image ? `
-<img
-src="${image}"
-style="
-width:100%;
-border-radius:20px;
-margin-bottom:20px;
-display:block;
-">
-` : ""}
-
-<div class="detail-body">
-${content}
-</div>
-
-</div>
-
-<div
-id="relatedPostsSection"
-style="
-margin-top:50px;
-">
-
-<h2
-style="
-margin-bottom:20px;
-font-size:28px;
-">
-Related Posts
-</h2>
-
-<div
-id="relatedPosts"
-class="grid"
->
-
-${relatedPosts.map(post => createCard(post)).join("")}
-
-</div>
-
-</div>
-
-</div>
-
+      <div id="relatedPosts" class="grid">
+        ${relatedPosts.map(post => createCard(post)).join("")}
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="/script.js"></script>
