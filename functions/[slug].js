@@ -36,6 +36,7 @@ export async function onRequest(context) {
 
       for (const post of posts) {
         const title = post.title?.$t || "";
+
         if (slugify(title) === slug) {
           foundPost = post;
         }
@@ -58,19 +59,19 @@ export async function onRequest(context) {
   const title = foundPost.title?.$t || "No Title";
   const rawContent = foundPost.content?.$t || "";
 
-  // Find first image in content
+  // First image from the post body
   const firstContentImageMatch = rawContent.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
   const firstContentImage = firstContentImageMatch?.[1] || "";
 
-  // Keep the small thumbnail, do not upscale it
+  // Use the first image again as the featured image
   const image =
-    foundPost.media$thumbnail?.url ||
     firstContentImage ||
+    foundPost.media$thumbnail?.url?.replace("/s72-c/", "/s1200/") ||
     "";
 
-  // Remove first image from body if it matches the one being shown above
+  // Remove the first image from the body so it does not repeat twice
   let content = rawContent;
-  if (firstContentImageMatch?.[0] && firstContentImage) {
+  if (firstContentImageMatch?.[0]) {
     content = content.replace(firstContentImageMatch[0], "");
   }
 
@@ -90,8 +91,8 @@ export async function onRequest(context) {
     const postSlug = slugify(postTitle);
 
     const postImage =
-      post.media$thumbnail?.url ||
       post.content?.$t?.match(/<img.*?src="(.*?)"/i)?.[1] ||
+      post.media$thumbnail?.url?.replace("/s72-c/", "/s1200/") ||
       "https://via.placeholder.com/500x750?text=No+Image";
 
     return `
@@ -126,37 +127,49 @@ export async function onRequest(context) {
 
 <header class="topbar">
   <a class="brand" href="/">
-    <div class="brand-logo">M</div>
+    <div class="brand-logo">
+      M
+    </div>
 
     <div class="brand-text">
-      <h1>Premium Movie Blog</h1>
-      <p>Latest movies, clean layout, quick browsing</p>
+      <h1>
+        Premium Movie Blog
+      </h1>
+
+      <p>
+        Latest movies, clean layout, quick browsing
+      </p>
     </div>
   </a>
 </header>
 
 <div class="app">
+
   <div id="detailView" style="display:block;max-width:1000px;margin:auto;">
+
     <a href="/" class="nav-btn" style="margin-bottom:20px;display:inline-flex;">
       ⬅ Back
     </a>
 
     <div id="detailContent">
-      <h1 class="detail-title">${title}</h1>
+
+      <h1 class="detail-title">
+        ${title}
+      </h1>
 
       <div class="labels" style="margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;">
-        ${labels
-          .map(label => `
-            <span class="label">${label}</span>
-          `)
-          .join("")}
+        ${labels.map(label => `
+          <span class="label">
+            ${label}
+          </span>
+        `).join("")}
       </div>
 
       ${image ? `
         <img
           src="${image}"
           alt="${title}"
-          style="width:auto;max-width:220px;border-radius:14px;margin-bottom:20px;display:block;">
+          style="width:100%;max-width:650px;border-radius:20px;margin-bottom:20px;display:block;">
       ` : ""}
 
       <div class="detail-body">
@@ -165,13 +178,17 @@ export async function onRequest(context) {
     </div>
 
     <div id="relatedPostsSection" style="margin-top:50px;">
-      <h2 style="margin-bottom:20px;font-size:28px;">Related Posts</h2>
+      <h2 style="margin-bottom:20px;font-size:28px;">
+        Related Posts
+      </h2>
 
       <div id="relatedPosts" class="grid">
         ${relatedPosts.map(post => createCard(post)).join("")}
       </div>
     </div>
+
   </div>
+
 </div>
 
 </body>
