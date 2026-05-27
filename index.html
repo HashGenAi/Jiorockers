@@ -202,29 +202,6 @@
 
     </div>
 
-    <div id="detailView">
-
-      <a
-        id="backBtn"
-        class="nav-btn"
-        style="margin-bottom:20px; display:inline-flex;"
-        href="?page=1"
-      >
-        ⬅ Back
-      </a>
-
-      <div id="detailContent"></div>
-
-      <div id="relatedPostsSection" style="display:none;">
-
-        <h2>Related Posts</h2>
-
-        <div id="relatedPosts" class="grid"></div>
-
-      </div>
-
-    </div>
-
   </div>
 
 
@@ -555,15 +532,10 @@
     }
 
     const postsEl = document.getElementById("posts");
-    const detailView = document.getElementById("detailView");
-    const detailContent = document.getElementById("detailContent");
     const pagination = document.getElementById("pagination");
     const pageNumEl = document.getElementById("pageNum");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
-    const backBtn = document.getElementById("backBtn");
-    const relatedPostsSection = document.getElementById("relatedPostsSection");
-    const relatedPostsEl = document.getElementById("relatedPosts");
     const pageBadge = document.getElementById("pageBadge");
     const searchInput = document.getElementById("searchInput");
     const searchClear = document.getElementById("searchClear");
@@ -669,7 +641,7 @@
       const slug = slugify(title);
 
       return `
-        <a class="card" href="/${slug}" data-slug="${slug}">
+        <a class="card" href="/${slug}">
           <div class="poster-wrap">
             <img class="poster" src="${image}" loading="lazy" alt="${title}">
           </div>
@@ -690,10 +662,6 @@
       `;
     }
 
-    function isViewingPost(){
-      return detailView.style.display === "block";
-    }
-
     function updatePageBadge(){
       if(currentSearch){
         pageBadge.style.display = "inline-flex";
@@ -707,7 +675,7 @@
         return;
       }
 
-      if(currentPage > 1 && !isViewingPost()){
+      if(currentPage > 1){
         pageBadge.style.display = "inline-flex";
         pageBadge.textContent = `Page ${currentPage}`;
       }else{
@@ -769,16 +737,6 @@
       setBrandTitleVisible(true);
       postsEl.style.display = "grid";
       pagination.style.display = currentSearch ? "none" : "flex";
-      detailView.style.display = "none";
-      updatePageBadge();
-    }
-
-    function showDetail(){
-      setPageTitleVisible(false);
-      setBrandTitleVisible(false);
-      postsEl.style.display = "none";
-      pagination.style.display = "none";
-      detailView.style.display = "block";
       updatePageBadge();
     }
 
@@ -852,147 +810,11 @@
       }
     }
 
-    async function findPostBySlug(slug){
-      while(!noMoreFiles){
-        const found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
-        if(found){
-          const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-          const page = Math.floor(index / POSTS_PER_PAGE) + 1;
-          return { post: found, page };
-        }
-
-        const ok = await loadNextJsonFile();
-        if(!ok) break;
-      }
-
-      const finalFound = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
-      if(finalFound){
-        const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-        const page = Math.floor(index / POSTS_PER_PAGE) + 1;
-        return { post: finalFound, page };
-      }
-
-      return null;
-    }
-
-    function renderDetailHeader(post){
-      const title = post.title?.$t || "No Title";
-      const labels = getLabels(post);
-
-      return `
-        <h1 class="detail-title">${title}</h1>
-
-        <div class="labels" style="margin-bottom:18px;">
-          ${labels.slice(0, 8).map(label => `
-            <a
-              href="?label=${encodeURIComponent(label)}&page=1"
-              class="label clickable-label label-link"
-              data-label="${encodeURIComponent(label)}"
-            >${label}</a>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    async function loadRelatedPosts(currentSlug){
-      try{
-        await ensureAllPostsLoaded();
-
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
-
-        const relatedPosts = ALL_POSTS
-          .filter(post => slugify(post.title?.$t || "") !== currentSlug)
-          .slice(0, 24);
-
-        if(!relatedPosts.length){
-          relatedPostsSection.style.display = "none";
-          relatedPostsEl.innerHTML = "";
-          return;
-        }
-
-        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
-      }catch(e){
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
-      }
-    }
-
-    async function openPost(slug, addHistory = true){
-      scrollToTopNow();
-      closeSidebar();
-      showDetail();
-
-      detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-
-      const result = await findPostBySlug(slug);
-
-      if(!result){
-        detailContent.innerHTML = "<h2>Post not found</h2>";
-
-        if(currentLabel){
-          backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
-        }else if(currentSearch){
-          backBtn.href = `?search=${encodeURIComponent(currentSearch)}`;
-        }else{
-          backBtn.href = `?page=${currentPage}`;
-        }
-
-        updateNavState();
-        updatePageBadge();
-        scrollToTopNow();
-        return;
-      }
-
-      const post = result.post;
-      const foundPage = result.page || 1;
-      const title = post.title?.$t || "No Title";
-      document.title = title;
-
-      currentPage = foundPage;
-      pageNumEl.innerText = currentPage;
-
-      const content = post.content?.$t || "";
-
-      detailContent.innerHTML = `
-        ${renderDetailHeader(post)}
-        <div class="detail-body">${content}</div>
-      `;
-
-      if(currentLabel){
-        backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
-      }else if(currentSearch){
-        backBtn.href = `?search=${encodeURIComponent(currentSearch)}`;
-      }else{
-        backBtn.href = `?page=${currentPage}`;
-      }
-
-      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
-      const nextPage = currentPage + 1;
-
-      if(currentLabel){
-        prevBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
-        nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
-      }else{
-        prevBtn.href = `?page=${prevPage}`;
-        nextBtn.href = `?page=${nextPage}`;
-      }
-
-      if(addHistory){
-        history.pushState(
-          { page: foundPage, post: slug, label: currentLabel || "", search: currentSearch || "" },
-          "",
-          `/${slug}`
-        );
-      }
-
-      await loadRelatedPosts(slug);
-
-      updateNavState();
-      updatePageBadge();
-      scrollToTopNow();
+    function matchesSearch(post, query){
+      const title = (post.title?.$t || "").toLowerCase();
+      const labels = getLabels(post).join(" ").toLowerCase();
+      const content = (post.content?.$t || "").toLowerCase();
+      return title.includes(query) || labels.includes(query) || content.includes(query);
     }
 
     async function renderPage(page, addHistory = true){
@@ -1032,11 +854,7 @@
 
       prevBtn.href = `?page=${prevPage}`;
       nextBtn.href = `?page=${nextPage}`;
-      backBtn.href = `?page=${currentPage}`;
 
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-      detailView.style.display = "none";
       pagination.style.display = "flex";
 
       if(addHistory){
@@ -1046,13 +864,6 @@
       updateNavState();
       updatePageBadge();
       scrollToTopNow();
-    }
-
-    function matchesSearch(post, query){
-      const title = (post.title?.$t || "").toLowerCase();
-      const labels = getLabels(post).join(" ").toLowerCase();
-      const content = (post.content?.$t || "").toLowerCase();
-      return title.includes(query) || labels.includes(query) || content.includes(query);
     }
 
     async function renderSearchResults(query, addHistory = true){
@@ -1162,7 +973,6 @@
 
       prevBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
       nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
-      backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
 
       if(addHistory){
         history.pushState(
@@ -1210,24 +1020,10 @@
       const search = params.get("search") || "";
       const label = params.get("label") || "";
 
-      const pathSlug =
-        window.location.pathname
-          .replace(/^\/+/,"")
-          .replace(/\/+$/,"");
-
-      const slug =
-        pathSlug &&
-        !pathSlug.includes(".") &&
-        pathSlug !== "label"
-          ? decodeURIComponent(pathSlug)
-          : params.get("post");
-
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      if(slug){
-        await openPost(slug, false);
-      }else if(label){
+      if(label){
         await renderLabelPosts(label, currentPage, false);
       }else if(search){
         searchInput.value = search;
@@ -1281,23 +1077,6 @@
       }
 
       renderPage(currentPage + 1, true);
-    });
-
-    backBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeSidebar();
-
-      if(currentLabel){
-        renderLabelPosts(currentLabel, currentPage, true);
-        return;
-      }
-
-      if(currentSearch){
-        renderSearchResults(currentSearch, true);
-        return;
-      }
-
-      renderPage(currentPage, true);
     });
 
     searchBtn.addEventListener("click", () => {
@@ -1373,23 +1152,6 @@
           decodeURIComponent(labelLink.dataset.label || "");
 
         renderLabelPosts(label, 1, true);
-        return;
-      }
-
-      const card =
-        e.target.closest(".card");
-
-      if(card){
-
-        e.preventDefault();
-
-        const slug =
-          card.dataset.slug;
-
-        if(slug){
-          openPost(slug, true);
-        }
-
         return;
       }
 
