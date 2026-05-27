@@ -20,6 +20,15 @@ export async function onRequest(context) {
     return context.next();
   }
 
+  // Redirect old Blogger-style URLs
+  const oldUrlMatch = pathname.match(/^\/\d{4}\/\d{2}\/(.+)\.html$/i);
+
+  if (oldUrlMatch) {
+    const cleanSlug = oldUrlMatch[1];
+
+    return Response.redirect(`${urlObj.origin}/${cleanSlug}`, 301);
+  }
+
   function slugify(text) {
     return String(text || "")
       .toLowerCase()
