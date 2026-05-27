@@ -16,8 +16,12 @@
   <!-- Preload JSON -->
   <link rel="preload" as="fetch" href="json/posts1.json" type="application/json">
 
-  <!-- Small extra style for clickable labels -->
   <style>
+    .label-link{
+      text-decoration:none;
+      color:inherit;
+      cursor:pointer;
+    }
     .clickable-label{
       cursor:pointer;
       transition:.2s;
@@ -581,6 +585,8 @@
     let noMoreFiles = false;
     let loadingFilePromises = new Map();
     let currentSearch = "";
+    let currentLabel = "";
+    let currentLabelTotalPages = 1;
     let searchTimer = null;
 
     function scrollToTopNow(){
@@ -664,7 +670,7 @@
       const slug = slugify(title);
 
       return `
-        <a class="card" href="/${slug}" data-slug="${slug}">
+        <div class="card" data-slug="${slug}">
           <div class="poster-wrap">
             <img class="poster" src="${image}" loading="lazy" alt="${title}">
           </div>
@@ -674,14 +680,15 @@
 
             <div class="labels">
               ${labels.slice(0,6).map(label => `
-                <span
-                  class="label clickable-label"
+                <a
+                  href="?label=${encodeURIComponent(label)}&page=1"
+                  class="label clickable-label label-link"
                   data-label="${encodeURIComponent(label)}"
-                >${label}</span>
+                >${label}</a>
               `).join("")}
             </div>
           </div>
-        </a>
+        </div>
       `;
     }
 
@@ -696,6 +703,12 @@
         return;
       }
 
+      if(currentLabel){
+        pageBadge.style.display = "inline-flex";
+        pageBadge.textContent = `Label: ${currentLabel} • Page ${currentPage}`;
+        return;
+      }
+
       if(currentPage > 1 && !isViewingPost()){
         pageBadge.style.display = "inline-flex";
         pageBadge.textContent = `Page ${currentPage}`;
@@ -706,7 +719,35 @@
     }
 
     function updateNavState(){
-      if(currentPage <= 1 || currentSearch){
+      if(currentSearch){
+        prevBtn.classList.add("disabled");
+        nextBtn.classList.add("disabled");
+        prevBtn.setAttribute("aria-disabled", "true");
+        nextBtn.setAttribute("aria-disabled", "true");
+        return;
+      }
+
+      if(currentLabel){
+        if(currentPage <= 1){
+          prevBtn.classList.add("disabled");
+          prevBtn.setAttribute("aria-disabled", "true");
+        }else{
+          prevBtn.classList.remove("disabled");
+          prevBtn.removeAttribute("aria-disabled");
+        }
+
+        if(currentPage >= currentLabelTotalPages){
+          nextBtn.classList.add("disabled");
+          nextBtn.setAttribute("aria-disabled", "true");
+        }else{
+          nextBtn.classList.remove("disabled");
+          nextBtn.removeAttribute("aria-disabled");
+        }
+
+        return;
+      }
+
+      if(currentPage <= 1){
         prevBtn.classList.add("disabled");
         prevBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -716,7 +757,7 @@
 
       const atKnownLastPage = noMoreFiles && (currentPage * POSTS_PER_PAGE >= ALL_POSTS.length);
 
-      if(atKnownLastPage || currentSearch){
+      if(atKnownLastPage){
         nextBtn.classList.add("disabled");
         nextBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -726,10 +767,10 @@
     }
 
     function showHome(){
-      setPageTitleVisible(!currentSearch);
+      setPageTitleVisible(!currentSearch && !currentLabel);
       setBrandTitleVisible(true);
       postsEl.style.display = "grid";
-      pagination.style.display = currentSearch ? "none" : "flex";
+      pagination.style.display = (currentSearch ? "none" : "flex");
       detailView.style.display = "none";
       updatePageBadge();
     }
@@ -844,7 +885,13 @@
         <h1 class="detail-title">${title}</h1>
 
         <div class="labels" style="margin-bottom:18px;">
-          ${labels.slice(0, 8).map(label => `<span class="label">${label}</span>`).join("")}
+          ${labels.slice(0, 8).map(label => `
+            <a
+              href="?label=${encodeURIComponent(label)}&page=1"
+              class="label clickable-label label-link"
+              data-label="${encodeURIComponent(label)}"
+            >${label}</a>
+          `).join("")}
         </div>
       `;
     }
@@ -876,10 +923,6 @@
     async function openPost(slug, addHistory = true){
       scrollToTopNow();
       closeSidebar();
-      currentSearch = "";
-      searchInput.value = "";
-      searchClear.classList.remove("show");
-      searchStatus.style.display = "none";
       showDetail();
 
       detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
@@ -890,7 +933,15 @@
 
       if(!result){
         detailContent.innerHTML = "<h2>Post not found</h2>";
-        backBtn.href = `?page=${currentPage}`;
+
+        if(currentLabel){
+          backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
+        }else if(currentSearch){
+          backBtn.href = `?search=${encodeURIComponent(currentSearch)}`;
+        }else{
+          backBtn.href = `?page=${currentPage}`;
+        }
+
         updateNavState();
         updatePageBadge();
         scrollToTopNow();
@@ -912,16 +963,28 @@
         <div class="detail-body">${content}</div>
       `;
 
+      if(currentLabel){
+        backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
+      }else if(currentSearch){
+        backBtn.href = `?search=${encodeURIComponent(currentSearch)}`;
+      }else{
+        backBtn.href = `?page=${currentPage}`;
+      }
+
       const prevPage = currentPage > 1 ? currentPage - 1 : 1;
       const nextPage = currentPage + 1;
 
-      prevBtn.href = `?page=${prevPage}`;
-      nextBtn.href = `?page=${nextPage}`;
-      backBtn.href = `?page=${foundPage}`;
+      if(currentLabel){
+        prevBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
+        nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
+      }else{
+        prevBtn.href = `?page=${prevPage}`;
+        nextBtn.href = `?page=${nextPage}`;
+      }
 
       if(addHistory){
         history.pushState(
-          { page: foundPage, post: slug },
+          { page: foundPage, post: slug, label: currentLabel || "", search: currentSearch || "" },
           "",
           `?post=${encodeURIComponent(slug)}`
         );
@@ -937,7 +1000,11 @@
     async function renderPage(page, addHistory = true){
       scrollToTopNow();
       closeSidebar();
+
       currentSearch = "";
+      currentLabel = "";
+      currentLabelTotalPages = 1;
+
       searchStatus.style.display = "none";
       searchInput.value = "";
       searchClear.classList.remove("show");
@@ -1005,6 +1072,10 @@
 
       scrollToTopNow();
       closeSidebar();
+
+      currentLabel = "";
+      currentLabelTotalPages = 1;
+
       showHome();
       setPageTitleVisible(false);
 
@@ -1042,63 +1113,69 @@
       scrollToTopNow();
     }
 
-    async function renderLabelPosts(label, addHistory = true){
+    async function renderLabelPosts(label, page = 1, addHistory = true){
       scrollToTopNow();
       closeSidebar();
-
-      showHome();
 
       currentSearch = "";
       searchInput.value = "";
       searchClear.classList.remove("show");
 
+      currentLabel = label.trim();
+
+      showHome();
       setPageTitleVisible(false);
 
       searchStatus.style.display = "block";
-      searchStatus.textContent = `Loading ${label} posts...`;
+      searchStatus.textContent = `Loading ${currentLabel} posts...`;
 
-      postsEl.innerHTML = `
-        <div class="loading">
-          Loading ${label} posts...
-        </div>
-      `;
-
+      postsEl.innerHTML = `<div class="loading">Loading ${currentLabel} posts...</div>`;
       pagination.style.display = "none";
 
       await ensureAllPostsLoaded();
 
-      const targetLabel = label.toLowerCase().trim();
+      const targetLabel = currentLabel.toLowerCase().trim();
 
       const results = ALL_POSTS.filter(post => {
         const labels = getLabels(post).map(l => l.toLowerCase().trim());
         return labels.includes(targetLabel);
       });
 
-      if(results.length){
-        postsEl.innerHTML = results.map(post => createCard(post)).join("");
-        searchStatus.textContent = `${results.length} post${results.length === 1 ? "" : "s"} found in "${label}"`;
+      currentLabelTotalPages = Math.max(1, Math.ceil(results.length / POSTS_PER_PAGE));
+      currentPage = Math.min(Math.max(1, page), currentLabelTotalPages);
+
+      const start = (currentPage - 1) * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const pageItems = results.slice(start, end);
+
+      if(pageItems.length){
+        postsEl.innerHTML = pageItems.map(post => createCard(post)).join("");
+        searchStatus.textContent = `${results.length} post${results.length === 1 ? "" : "s"} found in "${currentLabel}"`;
       }else{
-        postsEl.innerHTML = `
-          <div class="loading">
-            No posts found in "${label}"
-          </div>
-        `;
-        searchStatus.textContent = `No posts found in "${label}"`;
+        postsEl.innerHTML = `<div class="loading">No posts found in "${currentLabel}"</div>`;
+        searchStatus.textContent = `No posts found in "${currentLabel}"`;
       }
 
-      pageNumEl.innerText = "Label";
-      prevBtn.classList.add("disabled");
-      nextBtn.classList.add("disabled");
-      prevBtn.setAttribute("aria-disabled", "true");
-      nextBtn.setAttribute("aria-disabled", "true");
+      pageNumEl.innerText = `${currentPage} / ${currentLabelTotalPages}`;
+      pagination.style.display = "flex";
 
-      pageBadge.style.display = "inline-flex";
-      pageBadge.textContent = `Label: ${label}`;
+      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+      const nextPage = currentPage < currentLabelTotalPages ? currentPage + 1 : currentLabelTotalPages;
+
+      prevBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
+      nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
+      backBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`;
 
       if(addHistory){
-        history.pushState({ label }, "", `?label=${encodeURIComponent(label)}`);
+        history.pushState(
+          { label: currentLabel, page: currentPage },
+          "",
+          `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`
+        );
       }
 
+      updateNavState();
+      updatePageBadge();
       scrollToTopNow();
     }
 
@@ -1140,7 +1217,7 @@
       pageNumEl.innerText = currentPage;
 
       if(label){
-        await renderLabelPosts(label, false);
+        await renderLabelPosts(label, currentPage, false);
       }else if(search){
         searchInput.value = search;
         searchClear.classList.add("show");
@@ -1158,8 +1235,21 @@
     prevBtn.addEventListener("click", (e) => {
       e.preventDefault();
       closeSidebar();
+
       if(prevBtn.classList.contains("disabled")) return;
-      if(currentPage > 1 && !currentSearch){
+
+      if(currentSearch){
+        return;
+      }
+
+      if(currentLabel){
+        if(currentPage > 1){
+          renderLabelPosts(currentLabel, currentPage - 1, true);
+        }
+        return;
+      }
+
+      if(currentPage > 1){
         renderPage(currentPage - 1, true);
       }
     });
@@ -1167,16 +1257,38 @@
     nextBtn.addEventListener("click", (e) => {
       e.preventDefault();
       closeSidebar();
+
       if(nextBtn.classList.contains("disabled")) return;
-      if(!currentSearch){
-        renderPage(currentPage + 1, true);
+
+      if(currentSearch){
+        return;
       }
+
+      if(currentLabel){
+        if(currentPage < currentLabelTotalPages){
+          renderLabelPosts(currentLabel, currentPage + 1, true);
+        }
+        return;
+      }
+
+      renderPage(currentPage + 1, true);
     });
 
     backBtn.addEventListener("click", (e) => {
       e.preventDefault();
       closeSidebar();
-      history.back();
+
+      if(currentLabel){
+        renderLabelPosts(currentLabel, currentPage, true);
+        return;
+      }
+
+      if(currentSearch){
+        renderSearchResults(currentSearch, true);
+        return;
+      }
+
+      renderPage(currentPage, true);
     });
 
     searchBtn.addEventListener("click", () => {
@@ -1241,18 +1353,34 @@
 
     document.addEventListener("click", e => {
 
-      /* ========= LABEL CLICK ========= */
+      const labelLink =
+        e.target.closest(".label-link");
 
-      const labelEl = e.target.closest(".clickable-label");
-
-      if(labelEl){
+      if(labelLink){
         e.preventDefault();
         e.stopPropagation();
 
         const label =
-          decodeURIComponent(labelEl.dataset.label || "");
+          decodeURIComponent(labelLink.dataset.label || "");
 
-        renderLabelPosts(label, true);
+        renderLabelPosts(label, 1, true);
+        return;
+      }
+
+      const card =
+        e.target.closest(".card");
+
+      if(card){
+
+        e.preventDefault();
+
+        const slug =
+          card.dataset.slug;
+
+        if(slug){
+          openPost(slug, true);
+        }
+
         return;
       }
 
@@ -1342,18 +1470,6 @@
 
         prevImage();
 
-        return;
-      }
-
-      /* ========= POST CLICK ========= */
-
-      const card = e.target.closest(".card");
-      if(card){
-        e.preventDefault();
-        const slug = card.dataset.slug;
-        if(slug){
-          openPost(slug, true);
-        }
         return;
       }
 
