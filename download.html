@@ -1,23 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<link rel="stylesheet" href="style.css">
-
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Premium Movie Blog</title>
 
   <style>
+    /* =========================
+       NAVBAR + SEARCH + MENU ONLY
+    ========================= */
+
     *{
       margin:0;
       padding:0;
       box-sizing:border-box;
-    }
-
-    html{
-      scroll-behavior:smooth;
     }
 
     body{
@@ -26,7 +22,6 @@
       color:white;
     }
 
-    /* TOPBAR */
     .topbar{
       position:sticky;
       top:0;
@@ -45,45 +40,40 @@
       border-bottom:1px solid rgba(255,255,255,.08);
     }
 
-    /* BRAND */
     .brand{
       display:flex;
       align-items:center;
       gap:12px;
+
       text-decoration:none;
       color:white;
-      min-width:0;
     }
 
     .brand-logo{
       width:44px;
       height:44px;
+
       border-radius:14px;
+
       background:linear-gradient(135deg,#2563eb,#7c3aed);
+
       display:flex;
       align-items:center;
       justify-content:center;
+
       font-size:20px;
       font-weight:700;
-      flex:0 0 auto;
-    }
-
-    .brand-text{
-      min-width:0;
     }
 
     .brand-text h1{
       font-size:18px;
-      line-height:1.2;
     }
 
     .brand-text p{
       font-size:12px;
       opacity:.7;
-      line-height:1.2;
     }
 
-    /* SEARCH */
     .topbar-center{
       flex:1;
       max-width:600px;
@@ -96,11 +86,16 @@
     .search-input{
       width:100%;
       height:48px;
+
       border:none;
       outline:none;
+
       padding:0 45px 0 48px;
+
       border-radius:16px;
+
       background:rgba(255,255,255,.08);
+
       color:white;
       font-size:15px;
     }
@@ -114,8 +109,10 @@
       left:16px;
       top:50%;
       transform:translateY(-50%);
+
       width:20px;
       height:20px;
+
       opacity:.7;
       pointer-events:none;
     }
@@ -125,31 +122,34 @@
       right:14px;
       top:50%;
       transform:translateY(-50%);
+
       border:none;
       background:none;
+
       color:white;
       font-size:22px;
       cursor:pointer;
-      line-height:1;
     }
 
-    /* BUTTONS */
     .topbar-actions{
       display:flex;
       align-items:center;
       gap:10px;
-      flex:0 0 auto;
     }
 
     .menu-btn{
       width:46px;
       height:46px;
+
       border:none;
       border-radius:14px;
+
       background:rgba(255,255,255,.08);
+
       display:flex;
       align-items:center;
       justify-content:center;
+
       cursor:pointer;
       color:white;
     }
@@ -163,21 +163,25 @@
     .menu-lines span{
       width:18px;
       height:2px;
+
       background:white;
       border-radius:10px;
-      display:block;
     }
 
-    /* SIDEBAR */
     .sidebar{
       position:fixed;
       top:0;
       right:-320px;
+
       width:300px;
       height:100vh;
+
       background:#111827;
+
       z-index:2000;
+
       transition:.3s ease;
+
       display:flex;
       flex-direction:column;
     }
@@ -189,10 +193,14 @@
     .sidebar-overlay{
       position:fixed;
       inset:0;
+
       background:rgba(0,0,0,.5);
+
       opacity:0;
       visibility:hidden;
+
       transition:.3s ease;
+
       z-index:1500;
     }
 
@@ -205,8 +213,9 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+
       padding:20px;
+
       border-bottom:1px solid rgba(255,255,255,.08);
     }
 
@@ -214,46 +223,47 @@
       display:flex;
       align-items:center;
       gap:12px;
-      min-width:0;
     }
 
     .sidebar-avatar{
       width:50px;
       height:50px;
+
       border-radius:16px;
+
       background:linear-gradient(135deg,#2563eb,#7c3aed);
+
       display:flex;
       align-items:center;
       justify-content:center;
+
       font-size:22px;
       font-weight:bold;
-      flex:0 0 auto;
     }
 
     .sidebar-profile h2{
       font-size:18px;
-      line-height:1.2;
+      color:white;
     }
 
     .sidebar-profile p{
       font-size:12px;
       opacity:.7;
-      line-height:1.2;
+      color:white;
     }
 
     .sidebar-close{
       border:none;
       background:none;
+
       color:white;
       font-size:30px;
+
       cursor:pointer;
-      line-height:1;
-      flex:0 0 auto;
     }
 
     .sidebar-content{
       padding:20px;
-      overflow:auto;
     }
 
     .sidebar-section-title{
@@ -261,19 +271,24 @@
       opacity:.6;
       font-size:13px;
       text-transform:uppercase;
-      letter-spacing:.08em;
     }
 
     .sidebar-link{
       display:flex;
       align-items:center;
       gap:12px;
+
       padding:14px;
+
       margin-bottom:10px;
+
       border-radius:14px;
+
       text-decoration:none;
       color:white;
+
       background:rgba(255,255,255,.05);
+
       transition:.2s;
     }
 
@@ -281,31 +296,37 @@
       background:rgba(255,255,255,.1);
     }
 
-    .sidebar-link .icon{
-      width:20px;
-      text-align:center;
-      flex:0 0 auto;
+    @media(max-width:768px){
+      .brand-text{
+        display:none;
+      }
+
+      .topbar-center{
+        display:none;
+      }
     }
 
-    /* DOWNLOAD WRAPPER */
+    /* =========================
+       YOUR ORIGINAL CSS
+    ========================= */
+
     .wrapper{
       max-width:500px;
-      margin:120px auto 60px;
+      margin:60px auto;
       background:#fff;
       padding:30px 20px;
       border-radius:10px;
       box-shadow:0 4px 20px rgba(0,0,0,0.08);
       text-align:center;
-      color:#111;
     }
 
-    .wrapper h2{
+    h2{
       margin:0 0 15px;
       font-size:24px;
       color:#222;
     }
 
-    .wrapper p{
+    p{
       color:#555;
       font-size:16px;
       margin-bottom:20px;
@@ -347,291 +368,282 @@
       font-size:14px;
       color:#888;
     }
-
-    /* MOBILE */
-    @media(max-width:768px){
-      .brand-text{
-        display:none;
-      }
-
-      .topbar-center{
-        display:none;
-      }
-
-      .wrapper{
-        margin:24px 12px 40px;
-        padding:24px 16px;
-      }
-    }
   </style>
 </head>
 <body>
 
-  <!-- =========================
-       NAVBAR + SEARCH + MENU ONLY
-  ========================= -->
+<!-- =========================
+     NAVBAR + SEARCH + MENU ONLY
+========================= -->
 
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
 
-    <div class="sidebar-header">
+  <div class="sidebar-header">
 
-      <div class="sidebar-profile">
-        <div class="sidebar-avatar">M</div>
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar">M</div>
 
-        <div>
-          <h2>Premium Movies</h2>
-          <p>Fast, clean, modern</p>
-        </div>
+      <div>
+        <h2>Premium Movies</h2>
+        <p>Fast, clean, modern</p>
+      </div>
+    </div>
+
+    <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+      ×
+    </button>
+
+  </div>
+
+  <div class="sidebar-content">
+
+    <div class="sidebar-section">
+
+      <div class="sidebar-section-title">
+        Navigation
       </div>
 
-      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+      <a class="sidebar-link" href="/">
+        <span class="icon">⌂</span>
+        <span>Home</span>
+      </a>
+
+      <a class="sidebar-link" href="#">
+        <span class="icon">★</span>
+        <span>Movies</span>
+      </a>
+
+      <a class="sidebar-link" href="#">
+        <span class="icon">☰</span>
+        <span>Categories</span>
+      </a>
+
+    </div>
+
+  </div>
+
+</aside>
+
+<!-- NAVBAR -->
+<header class="topbar" id="top">
+
+  <a class="brand" href="/" aria-label="Home">
+
+    <div class="brand-logo">M</div>
+
+    <div class="brand-text">
+      <h1>Premium Movie Blog</h1>
+      <p>Latest movies, clean layout</p>
+    </div>
+
+  </a>
+
+  <!-- SEARCH -->
+  <div class="topbar-center">
+
+    <div class="search-wrap">
+
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+        <path d="M21 21l-4.35-4.35"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"/>
+        <circle cx="11"
+                cy="11"
+                r="7"
+                stroke="white"
+                stroke-width="2"/>
+      </svg>
+
+      <input
+        id="searchInput"
+        class="search-input"
+        type="search"
+        placeholder="Search movies..."
+      >
+
+      <button
+        id="searchClear"
+        class="search-clear"
+        type="button">
         ×
       </button>
 
     </div>
 
-    <div class="sidebar-content">
-
-      <div class="sidebar-section">
-
-        <div class="sidebar-section-title">
-          Navigation
-        </div>
-
-        <a class="sidebar-link" href="/">
-          <span class="icon">⌂</span>
-          <span>Home</span>
-        </a>
-
-        <a class="sidebar-link" href="#">
-          <span class="icon">★</span>
-          <span>Movies</span>
-        </a>
-
-        <a class="sidebar-link" href="#">
-          <span class="icon">☰</span>
-          <span>Categories</span>
-        </a>
-
-      </div>
-
-    </div>
-
-  </aside>
-
-  <!-- NAVBAR -->
-  <header class="topbar" id="top">
-
-    <a class="brand" href="/" aria-label="Home">
-
-      <div class="brand-logo">M</div>
-
-      <div class="brand-text">
-        <h1>Premium Movie Blog</h1>
-        <p>Latest movies, clean layout</p>
-      </div>
-
-    </a>
-
-    <!-- SEARCH -->
-    <div class="topbar-center">
-
-      <div class="search-wrap">
-
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M21 21l-4.35-4.35"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <circle cx="11"
-                  cy="11"
-                  r="7"
-                  stroke="white"
-                  stroke-width="2"/>
-        </svg>
-
-        <input
-          id="searchInput"
-          class="search-input"
-          type="search"
-          placeholder="Search movies..."
-        >
-
-        <button
-          id="searchClear"
-          class="search-clear"
-          type="button">
-          ×
-        </button>
-
-      </div>
-
-    </div>
-
-    <!-- ACTIONS -->
-    <div class="topbar-actions">
-
-      <!-- MOBILE SEARCH BUTTON -->
-      <button
-        class="menu-btn search-btn"
-        id="searchBtn"
-        type="button"
-        aria-label="Search">
-
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M21 21l-4.35-4.35"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <circle cx="11"
-                  cy="11"
-                  r="7"
-                  stroke="white"
-                  stroke-width="2"/>
-        </svg>
-
-      </button>
-
-      <!-- MENU BUTTON -->
-      <button
-        class="menu-btn"
-        id="menuBtn"
-        type="button"
-        aria-label="Open menu">
-
-        <div class="menu-lines">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
-      </button>
-
-    </div>
-
-  </header>
-
-  <!-- DOWNLOAD SECTION -->
-  <div class="wrapper">
-    <h2>Preparing Your Download</h2>
-    <p id="statusText">Please wait, your download link will be ready in:</p>
-
-    <div id="countdown">5</div>
-
-    <a id="downloadBtn" href="javascript:void(0)">Download Now</a>
-
-    <div class="note">Do not close this page while waiting.</div>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
+  <!-- ACTIONS -->
+  <div class="topbar-actions">
 
-      const sidebar = document.getElementById("sidebar");
-      const sidebarOverlay = document.getElementById("sidebarOverlay");
-      const menuBtn = document.getElementById("menuBtn");
-      const sidebarClose = document.getElementById("sidebarClose");
+    <!-- MOBILE SEARCH BUTTON -->
+    <button
+      class="menu-btn search-btn"
+      id="searchBtn"
+      type="button">
 
-      const searchBtn = document.getElementById("searchBtn");
-      const searchInput = document.getElementById("searchInput");
-      const searchClear = document.getElementById("searchClear");
+      <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+        <path d="M21 21l-4.35-4.35"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"/>
+        <circle cx="11"
+                cy="11"
+                r="7"
+                stroke="white"
+                stroke-width="2"/>
+      </svg>
 
-      function openSidebar() {
-        sidebar.classList.add("active");
-        sidebarOverlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-      }
+    </button>
 
-      function closeSidebar() {
-        sidebar.classList.remove("active");
-        sidebarOverlay.classList.remove("active");
-        document.body.style.overflow = "";
-      }
+    <!-- MENU BUTTON -->
+    <button
+      class="menu-btn"
+      id="menuBtn"
+      type="button">
 
-      function runSearch() {
-        const value = searchInput.value.trim();
-        if (!value) return;
-        window.location.href = "/?search=" + encodeURIComponent(value);
-      }
+      <div class="menu-lines">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
 
-      menuBtn.addEventListener("click", openSidebar);
-      sidebarClose.addEventListener("click", closeSidebar);
-      sidebarOverlay.addEventListener("click", closeSidebar);
+    </button>
 
-      searchBtn.addEventListener("click", () => {
-        if (window.innerWidth <= 768) {
-          const value = prompt("Search movies:");
-          if (value && value.trim()) {
-            window.location.href = "/?search=" + encodeURIComponent(value.trim());
-          }
-        } else {
-          runSearch();
-        }
+  </div>
+
+</header>
+
+<!-- =========================
+     YOUR ORIGINAL DOWNLOAD CODE
+========================= -->
+
+<div class="wrapper">
+  <h2>Preparing Your Download</h2>
+  <p id="statusText">Please wait, your download link will be ready in:</p>
+
+  <div id="countdown">5</div>
+
+  <a id="downloadBtn" href="javascript:void(0)">Download Now</a>
+
+  <div class="note">Do not close this page while waiting.</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const sidebar = document.getElementById("sidebar");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+  const menuBtn = document.getElementById("menuBtn");
+  const sidebarClose = document.getElementById("sidebarClose");
+
+  const searchBtn = document.getElementById("searchBtn");
+  const searchInput = document.getElementById("searchInput");
+  const searchClear = document.getElementById("searchClear");
+
+  function openSidebar() {
+    sidebar.classList.add("active");
+    sidebarOverlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove("active");
+    sidebarOverlay.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  function runSearch() {
+    const value = searchInput.value.trim();
+
+    if (!value) return;
+
+    window.location.href =
+      "/?search=" + encodeURIComponent(value);
+  }
+
+  menuBtn.addEventListener("click", openSidebar);
+
+  sidebarClose.addEventListener("click", closeSidebar);
+
+  sidebarOverlay.addEventListener("click", closeSidebar);
+
+  searchBtn.addEventListener("click", runSearch);
+
+  searchClear.addEventListener("click", () => {
+    searchInput.value = "";
+    searchInput.focus();
+  });
+
+  searchInput.addEventListener("keydown", (e) => {
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch();
+    }
+
+  });
+
+});
+</script>
+
+<script>
+// Countdown seconds
+var seconds = 5;
+var countdownEl = document.getElementById("countdown");
+var downloadBtn = document.getElementById("downloadBtn");
+var statusText = document.getElementById("statusText");
+
+// Get URL params
+var params = new URLSearchParams(window.location.search);
+var targetPath = params.get("target");  // path + params only
+var domainKey = params.get("d");        // domain key
+
+// Domain list
+var domains = {
+  d1: "https://1fichier.com",
+  d2: "https://dailyuploads.net",
+  d3: "https://nitroflare.com",
+  d4: "https://mixdrop.top",
+  d5: "https://vikingfile.com",
+  d6: "https://www.messycloud.ink"
+};
+
+// Determine final link
+var domain = domains[domainKey]; // no default
+var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
+
+// Check target
+if (!targetPath) {
+  countdownEl.innerHTML = "0";
+  statusText.innerHTML = "Invalid download link.";
+} else {
+
+  var timer = setInterval(function(){
+    countdownEl.innerHTML = seconds;
+    seconds--;
+
+    if (seconds < 0) {
+      clearInterval(timer);
+
+      countdownEl.innerHTML = "Ready!";
+      statusText.innerHTML = "Your download link is ready.";
+      downloadBtn.classList.add("active");
+
+      // Click event for download
+      downloadBtn.addEventListener("click", function(){
+        window.location.href = finalLink;
       });
+    }
 
-      searchClear.addEventListener("click", () => {
-        searchInput.value = "";
-        searchInput.focus();
-      });
+  }, 1000);
 
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          runSearch();
-        }
-      });
-
-      // Countdown seconds
-      var seconds = 5;
-      var countdownEl = document.getElementById("countdown");
-      var downloadBtn = document.getElementById("downloadBtn");
-      var statusText = document.getElementById("statusText");
-
-      // Get URL params
-      var params = new URLSearchParams(window.location.search);
-      var targetPath = params.get("target");  // path + params only
-      var domainKey = params.get("d");        // domain key
-
-      // Domain list
-      var domains = {
-        d1: "https://1fichier.com",
-        d2: "https://dailyuploads.net",
-        d3: "https://nitroflare.com",
-        d4: "https://mixdrop.top",
-        d5: "https://vikingfile.com",
-        d6: "https://www.messycloud.ink"
-      };
-
-      // Determine final link
-      var domain = domains[domainKey];
-      var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
-
-      // Check target
-      if (!targetPath) {
-        countdownEl.innerHTML = "0";
-        statusText.innerHTML = "Invalid download link.";
-      } else {
-        var timer = setInterval(function(){
-          countdownEl.innerHTML = seconds;
-          seconds--;
-
-          if (seconds < 0) {
-            clearInterval(timer);
-            countdownEl.innerHTML = "Ready!";
-            statusText.innerHTML = "Your download link is ready.";
-            downloadBtn.classList.add("active");
-
-            downloadBtn.addEventListener("click", function(){
-              window.location.href = finalLink;
-            });
-          }
-        }, 1000);
-      }
-
-    });
-  </script>
+}
+</script>
 
 </body>
 </html>
