@@ -47,7 +47,6 @@ export async function onRequest(context) {
 
       for (const post of posts) {
         const title = post.title?.$t || "";
-
         if (slugify(title) === slug) {
           foundPost = post;
         }
@@ -62,7 +61,7 @@ export async function onRequest(context) {
   // NOT FOUND
   if (!foundPost) {
     return new Response("Post not found", {
-      status: 404
+      status: 404,
     });
   }
 
@@ -71,9 +70,7 @@ export async function onRequest(context) {
   const rawContent = foundPost.content?.$t || "";
 
   // First image from content
-  const firstContentImageMatch =
-    rawContent.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
-
+  const firstContentImageMatch = rawContent.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
   const firstContentImage = firstContentImageMatch?.[1] || "";
 
   // Featured image
@@ -90,17 +87,17 @@ export async function onRequest(context) {
     content = content.replace(firstContentImageMatch[0], "");
   }
 
-  // Remove ALL h1 tags from body
+  // Remove ALL h1 tags from body so only the title h1 remains
   content = content.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, "");
 
   // LABELS
   const labels = (foundPost.category || [])
-    .map(c => c.term)
+    .map((c) => c.term)
     .filter(Boolean);
 
   // RELATED POSTS
   const relatedPosts = allPosts
-    .filter(post => slugify(post.title?.$t || "") !== slug)
+    .filter((post) => slugify(post.title?.$t || "") !== slug)
     .slice(0, 24);
 
   // CARD FUNCTION
@@ -238,6 +235,7 @@ export async function onRequest(context) {
         id="searchClear"
         class="search-clear"
         aria-label="Clear search"
+        type="button"
       >
         ×
       </button>
@@ -251,7 +249,8 @@ export async function onRequest(context) {
     <button
       class="menu-btn search-btn"
       id="searchBtn"
-      aria-label="Focus search"
+      aria-label="Search"
+      type="button"
     >
 
       <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
@@ -272,6 +271,7 @@ export async function onRequest(context) {
       class="menu-btn"
       id="menuBtn"
       aria-label="Open menu"
+      type="button"
     >
 
       <div class="menu-lines" aria-hidden="true">
@@ -300,9 +300,13 @@ export async function onRequest(context) {
       <h1 class="detail-title">${title}</h1>
 
       <div class="labels" style="margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;">
-        ${labels.map(label => `
+        ${labels
+          .map(
+            (label) => `
           <span class="label">${label}</span>
-        `).join("")}
+        `
+          )
+          .join("")}
       </div>
 
       ${image ? `
@@ -331,7 +335,7 @@ export async function onRequest(context) {
       </h2>
 
       <div id="relatedPosts" class="grid">
-        ${relatedPosts.map(post => createCard(post)).join("")}
+        ${relatedPosts.map((post) => createCard(post)).join("")}
       </div>
 
     </div>
@@ -365,24 +369,27 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "";
   }
 
+  function runSearch() {
+    const value = searchInput?.value.trim();
+    if (!value) return;
+    window.location.href = "/?search=" + encodeURIComponent(value);
+  }
+
   menuBtn?.addEventListener("click", openSidebar);
   sidebarClose?.addEventListener("click", closeSidebar);
   sidebarOverlay?.addEventListener("click", closeSidebar);
 
-  searchBtn?.addEventListener("click", () => {
-    searchInput?.focus();
-  });
+  searchBtn?.addEventListener("click", runSearch);
 
   searchClear?.addEventListener("click", () => {
     if (searchInput) searchInput.value = "";
     searchInput?.focus();
   });
 
-  searchInput?.addEventListener("keydown", e => {
+  searchInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      const value = searchInput.value.trim();
-      if (!value) return;
-      window.location.href = "/?search=" + encodeURIComponent(value);
+      e.preventDefault();
+      runSearch();
     }
   });
 
@@ -395,7 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   return new Response(html, {
     headers: {
-      "content-type": "text/html;charset=UTF-8"
-    }
+      "content-type": "text/html;charset=UTF-8",
+    },
   });
 }
