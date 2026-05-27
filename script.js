@@ -50,10 +50,6 @@
           let poster =
             wrapper.dataset.poster;
 
-          /* =========================
-             TAKE FIRST IMAGE
-          ========================= */
-
           if(!poster){
 
             const firstPostImage =
@@ -70,10 +66,6 @@
             }
           }
 
-          /* =========================
-             BLOGGER LARGE SIZE
-          ========================= */
-
           if(poster){
             poster =
               poster.replace(
@@ -81,10 +73,6 @@
                 "/s1600/"
               );
           }
-
-          /* =========================
-             FALLBACK
-          ========================= */
 
           if(!poster){
             poster = fallbackPoster;
@@ -234,18 +222,10 @@
         ||
         "";
 
-      /* =========================
-         FORCE LARGE BLOGGER IMAGE
-      ========================= */
-
       src = src.replace(
         /\/s\d+(-c)?\//,
         "/s1600/"
       );
-
-      /* =========================
-         LOADING EFFECT
-      ========================= */
 
       popupImg.style.opacity = "0";
 
@@ -302,7 +282,7 @@
         (
           currentIndex + 1
         )
-        % 
+        %
         currentImages.length;
 
       updatePopupImage();
@@ -325,21 +305,17 @@
     }
 
     const postsEl = document.getElementById("posts");
-    const detailView = document.getElementById("detailView");
-    const detailContent = document.getElementById("detailContent");
     const pagination = document.getElementById("pagination");
     const pageNumEl = document.getElementById("pageNum");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
-    const backBtn = document.getElementById("backBtn");
-    const relatedPostsSection = document.getElementById("relatedPostsSection");
-    const relatedPostsEl = document.getElementById("relatedPosts");
     const pageBadge = document.getElementById("pageBadge");
     const searchInput = document.getElementById("searchInput");
     const searchClear = document.getElementById("searchClear");
     const searchStatus = document.getElementById("searchStatus");
     const pageTitleEl = document.querySelector(".page-title");
     const brandTitle = document.querySelector(".brand-text h1");
+    const languageCloud = document.getElementById("languageCloud");
 
     const searchBtn = document.getElementById("searchBtn");
     const menuBtn = document.getElementById("menuBtn");
@@ -354,6 +330,8 @@
     let noMoreFiles = false;
     let loadingFilePromises = new Map();
     let currentSearch = "";
+    let currentLabel = "";
+    let currentLabelTotalPages = 1;
     let searchTimer = null;
 
     function scrollToTopNow(){
@@ -375,6 +353,12 @@
     function setBrandTitleVisible(visible){
       if(brandTitle){
         brandTitle.style.display = visible ? "block" : "none";
+      }
+    }
+
+    function setLanguageCloudVisible(visible){
+      if(languageCloud){
+        languageCloud.style.display = visible ? "flex" : "none";
       }
     }
 
@@ -437,7 +421,7 @@
       const slug = slugify(title);
 
       return `
-        <a class="card" href="/${slug}" data-slug="${slug}">
+        <a class="card" href="/${slug}">
           <div class="poster-wrap">
             <img class="poster" src="${image}" loading="lazy" alt="${title}">
           </div>
@@ -446,15 +430,16 @@
             <div class="title">${title}</div>
 
             <div class="labels">
-              ${labels.slice(0,6).map(label => `<span class="label">${label}</span>`).join("")}
+              ${labels.slice(0,6).map(label => `
+                <span
+                  class="label clickable-label label-link"
+                  data-label="${encodeURIComponent(label)}"
+                >${label}</span>
+              `).join("")}
             </div>
           </div>
         </a>
       `;
-    }
-
-    function isViewingPost(){
-      return detailView.style.display === "block";
     }
 
     function updatePageBadge(){
@@ -464,7 +449,13 @@
         return;
       }
 
-      if(currentPage > 1 && !isViewingPost()){
+      if(currentLabel){
+        pageBadge.style.display = "inline-flex";
+        pageBadge.textContent = `Label: ${currentLabel} • Page ${currentPage}`;
+        return;
+      }
+
+      if(currentPage > 1){
         pageBadge.style.display = "inline-flex";
         pageBadge.textContent = `Page ${currentPage}`;
       }else{
@@ -474,7 +465,35 @@
     }
 
     function updateNavState(){
-      if(currentPage <= 1 || currentSearch){
+      if(currentSearch){
+        prevBtn.classList.add("disabled");
+        nextBtn.classList.add("disabled");
+        prevBtn.setAttribute("aria-disabled", "true");
+        nextBtn.setAttribute("aria-disabled", "true");
+        return;
+      }
+
+      if(currentLabel){
+        if(currentPage <= 1){
+          prevBtn.classList.add("disabled");
+          prevBtn.setAttribute("aria-disabled", "true");
+        }else{
+          prevBtn.classList.remove("disabled");
+          prevBtn.removeAttribute("aria-disabled");
+        }
+
+        if(currentPage >= currentLabelTotalPages){
+          nextBtn.classList.add("disabled");
+          nextBtn.setAttribute("aria-disabled", "true");
+        }else{
+          nextBtn.classList.remove("disabled");
+          nextBtn.removeAttribute("aria-disabled");
+        }
+
+        return;
+      }
+
+      if(currentPage <= 1){
         prevBtn.classList.add("disabled");
         prevBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -482,9 +501,10 @@
         prevBtn.removeAttribute("aria-disabled");
       }
 
-      const atKnownLastPage = noMoreFiles && (currentPage * POSTS_PER_PAGE >= ALL_POSTS.length);
+      const atKnownLastPage =
+        noMoreFiles && (currentPage * POSTS_PER_PAGE >= ALL_POSTS.length);
 
-      if(atKnownLastPage || currentSearch){
+      if(atKnownLastPage){
         nextBtn.classList.add("disabled");
         nextBtn.setAttribute("aria-disabled", "true");
       }else{
@@ -494,20 +514,11 @@
     }
 
     function showHome(){
-      setPageTitleVisible(!currentSearch);
+      setPageTitleVisible(!currentSearch && !currentLabel);
       setBrandTitleVisible(true);
+      setLanguageCloudVisible(!currentSearch);
       postsEl.style.display = "grid";
       pagination.style.display = currentSearch ? "none" : "flex";
-      detailView.style.display = "none";
-      updatePageBadge();
-    }
-
-    function showDetail(){
-      setPageTitleVisible(false);
-      setBrandTitleVisible(false);
-      postsEl.style.display = "none";
-      pagination.style.display = "none";
-      detailView.style.display = "block";
       updatePageBadge();
     }
 
@@ -581,137 +592,28 @@
       }
     }
 
-    async function findPostBySlug(slug){
-      while(!noMoreFiles){
-        const found = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
-        if(found){
-          const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-          const page = Math.floor(index / POSTS_PER_PAGE) + 1;
-          return { post: found, page };
-        }
-
-        const ok = await loadNextJsonFile();
-        if(!ok) break;
-      }
-
-      const finalFound = ALL_POSTS.find(p => slugify(p.title?.$t || "") === slug);
-      if(finalFound){
-        const index = ALL_POSTS.findIndex(p => slugify(p.title?.$t || "") === slug);
-        const page = Math.floor(index / POSTS_PER_PAGE) + 1;
-        return { post: finalFound, page };
-      }
-
-      return null;
-    }
-
-    function renderDetailHeader(post){
-      const title = post.title?.$t || "No Title";
-      const labels = getLabels(post);
-
-      return `
-        <h1 class="detail-title">${title}</h1>
-
-        <div class="labels" style="margin-bottom:18px;">
-          ${labels.slice(0, 8).map(label => `<span class="label">${label}</span>`).join("")}
-        </div>
-      `;
-    }
-
-    async function loadRelatedPosts(currentSlug){
-      try{
-        await ensureAllPostsLoaded();
-
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Loading related posts...</div>`;
-
-        const relatedPosts = ALL_POSTS
-          .filter(post => slugify(post.title?.$t || "") !== currentSlug)
-          .slice(0, 24);
-
-        if(!relatedPosts.length){
-          relatedPostsSection.style.display = "none";
-          relatedPostsEl.innerHTML = "";
-          return;
-        }
-
-        relatedPostsEl.innerHTML = relatedPosts.map(post => createCard(post)).join("");
-      }catch(e){
-        relatedPostsSection.style.display = "block";
-        relatedPostsEl.innerHTML = `<div class="loading">Failed to load related posts</div>`;
-      }
-    }
-
-    async function openPost(slug, addHistory = true){
-      scrollToTopNow();
-      closeSidebar();
-      currentSearch = "";
-      searchInput.value = "";
-      searchClear.classList.remove("show");
-      searchStatus.style.display = "none";
-      showDetail();
-
-      detailContent.innerHTML = `<div class="loading">Loading post...</div>`;
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-
-      const result = await findPostBySlug(slug);
-
-      if(!result){
-        detailContent.innerHTML = "<h2>Post not found</h2>";
-        backBtn.href = `?page=${currentPage}`;
-        updateNavState();
-        updatePageBadge();
-        scrollToTopNow();
-        return;
-      }
-
-      const post = result.post;
-      const foundPage = result.page || 1;
-      const title = post.title?.$t || "No Title";
-      document.title = title;
-
-      currentPage = foundPage;
-      pageNumEl.innerText = currentPage;
-
-      const content = post.content?.$t || "";
-
-      detailContent.innerHTML = `
-        ${renderDetailHeader(post)}
-        <div class="detail-body">${content}</div>
-      `;
-
-      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
-      const nextPage = currentPage + 1;
-
-      prevBtn.href = `?page=${prevPage}`;
-      nextBtn.href = `?page=${nextPage}`;
-      backBtn.href = `?page=${foundPage}`;
-
-      if(addHistory){
-        history.pushState(
-          { page: foundPage, post: slug },
-          "",
-          `?post=${encodeURIComponent(slug)}`
-        );
-      }
-
-      await loadRelatedPosts(slug);
-
-      updateNavState();
-      updatePageBadge();
-      scrollToTopNow();
+    function matchesSearch(post, query){
+      const title = (post.title?.$t || "").toLowerCase();
+      const labels = getLabels(post).join(" ").toLowerCase();
+      const content = (post.content?.$t || "").toLowerCase();
+      return title.includes(query) || labels.includes(query) || content.includes(query);
     }
 
     async function renderPage(page, addHistory = true){
       scrollToTopNow();
       closeSidebar();
+
       currentSearch = "";
+      currentLabel = "";
+      currentLabelTotalPages = 1;
+
       searchStatus.style.display = "none";
       searchInput.value = "";
       searchClear.classList.remove("show");
 
       setPageTitleVisible(true);
       setBrandTitleVisible(true);
+      setLanguageCloudVisible(true);
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
       await ensurePostsForPage(page);
@@ -733,29 +635,22 @@
       const prevPage = currentPage > 1 ? currentPage - 1 : 1;
       const nextPage = currentPage + 1;
 
-      prevBtn.href = `?page=${prevPage}`;
+      prevBtn.href = prevPage === 1 ? `/` : `?page=${prevPage}`;
       nextBtn.href = `?page=${nextPage}`;
-      backBtn.href = `?page=${currentPage}`;
 
-      relatedPostsSection.style.display = "none";
-      relatedPostsEl.innerHTML = "";
-      detailView.style.display = "none";
       pagination.style.display = "flex";
 
       if(addHistory){
-        history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+        if(currentPage === 1){
+          history.pushState({ page: 1 }, "", `/`);
+        }else{
+          history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+        }
       }
 
       updateNavState();
       updatePageBadge();
       scrollToTopNow();
-    }
-
-    function matchesSearch(post, query){
-      const title = (post.title?.$t || "").toLowerCase();
-      const labels = getLabels(post).join(" ").toLowerCase();
-      const content = (post.content?.$t || "").toLowerCase();
-      return title.includes(query) || labels.includes(query) || content.includes(query);
     }
 
     async function renderSearchResults(query, addHistory = true){
@@ -765,7 +660,7 @@
         searchStatus.style.display = "none";
         currentSearch = "";
         if(addHistory){
-          history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+          history.pushState({ page: currentPage }, "", currentPage === 1 ? `/` : `?page=${currentPage}`);
         }
         await renderPage(currentPage, false);
         return;
@@ -773,8 +668,13 @@
 
       scrollToTopNow();
       closeSidebar();
+
+      currentLabel = "";
+      currentLabelTotalPages = 1;
+
       showHome();
       setPageTitleVisible(false);
+      setLanguageCloudVisible(false);
 
       currentSearch = query.trim();
       searchStatus.style.display = "block";
@@ -810,6 +710,78 @@
       scrollToTopNow();
     }
 
+    async function renderLabelPosts(label, page = 1, addHistory = true){
+      scrollToTopNow();
+      closeSidebar();
+
+      currentSearch = "";
+      searchInput.value = "";
+      searchClear.classList.remove("show");
+
+      currentLabel = label.trim();
+
+      showHome();
+      setPageTitleVisible(false);
+      setLanguageCloudVisible(true);
+
+      searchStatus.style.display = "block";
+      searchStatus.textContent = `Loading ${currentLabel} posts...`;
+
+      postsEl.innerHTML = `<div class="loading">Loading ${currentLabel} posts...</div>`;
+      pagination.style.display = "none";
+
+      await ensureAllPostsLoaded();
+
+      const targetLabel = currentLabel.toLowerCase().trim();
+
+      const results = ALL_POSTS.filter(post => {
+        const labels = getLabels(post).map(l => l.toLowerCase().trim());
+        return labels.includes(targetLabel);
+      });
+
+      currentLabelTotalPages = Math.max(1, Math.ceil(results.length / POSTS_PER_PAGE));
+      currentPage = Math.min(Math.max(1, page), currentLabelTotalPages);
+
+      const start = (currentPage - 1) * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const pageItems = results.slice(start, end);
+
+      if(pageItems.length){
+        postsEl.innerHTML = pageItems.map(post => createCard(post)).join("");
+        searchStatus.textContent = `${results.length} post${results.length === 1 ? "" : "s"} found in "${currentLabel}"`;
+      }else{
+        postsEl.innerHTML = `<div class="loading">No posts found in "${currentLabel}"</div>`;
+        searchStatus.textContent = `No posts found in "${currentLabel}"`;
+      }
+
+      pageNumEl.innerText = `${currentPage} / ${currentLabelTotalPages}`;
+      pagination.style.display = "flex";
+
+      const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+      const nextPage = currentPage < currentLabelTotalPages ? currentPage + 1 : currentLabelTotalPages;
+
+      prevBtn.href =
+        prevPage === 1
+          ? `/?label=${encodeURIComponent(currentLabel)}`
+          : `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
+
+      nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
+
+      if(addHistory){
+        history.pushState(
+          { label: currentLabel, page: currentPage },
+          "",
+          currentPage === 1
+            ? `/?label=${encodeURIComponent(currentLabel)}`
+            : `?label=${encodeURIComponent(currentLabel)}&page=${currentPage}`
+        );
+      }
+
+      updateNavState();
+      updatePageBadge();
+      scrollToTopNow();
+    }
+
     function handleSearchInput(){
       const value = searchInput.value;
       if(value.trim()){
@@ -840,19 +812,39 @@
 
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
-      const slug = params.get("post");
       const search = params.get("search") || "";
+      const label = params.get("label") || "";
+
+      let pathSlug =
+        window.location.pathname
+          .replace(/^\/+/,"")
+          .replace(/\/+$/,"");
+
+      /* =========================
+         BLOGGER OLD URL -> CLEAN SLUG
+      ========================= */
+
+      if(/^\d{4}\/\d{2}\/.+\.html$/i.test(pathSlug)){
+        const cleanSlug =
+          pathSlug
+            .split("/")
+            .pop()
+            .replace(/\.html$/i, "");
+
+        window.location.replace(`/${cleanSlug}`);
+        return;
+      }
 
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      if(search){
+      if(label){
+        await renderLabelPosts(label, currentPage, false);
+      }else if(search){
         searchInput.value = search;
         searchClear.classList.add("show");
         searchBtn.classList.add("active");
         await renderSearchResults(search, false);
-      }else if(slug){
-        await openPost(slug, false);
       }else{
         await renderPage(currentPage, false);
       }
@@ -863,8 +855,21 @@
     prevBtn.addEventListener("click", (e) => {
       e.preventDefault();
       closeSidebar();
+
       if(prevBtn.classList.contains("disabled")) return;
-      if(currentPage > 1 && !currentSearch){
+
+      if(currentSearch){
+        return;
+      }
+
+      if(currentLabel){
+        if(currentPage > 1){
+          renderLabelPosts(currentLabel, currentPage - 1, true);
+        }
+        return;
+      }
+
+      if(currentPage > 1){
         renderPage(currentPage - 1, true);
       }
     });
@@ -872,16 +877,21 @@
     nextBtn.addEventListener("click", (e) => {
       e.preventDefault();
       closeSidebar();
-      if(nextBtn.classList.contains("disabled")) return;
-      if(!currentSearch){
-        renderPage(currentPage + 1, true);
-      }
-    });
 
-    backBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeSidebar();
-      history.back();
+      if(nextBtn.classList.contains("disabled")) return;
+
+      if(currentSearch){
+        return;
+      }
+
+      if(currentLabel){
+        if(currentPage < currentLabelTotalPages){
+          renderLabelPosts(currentLabel, currentPage + 1, true);
+        }
+        return;
+      }
+
+      renderPage(currentPage + 1, true);
     });
 
     searchBtn.addEventListener("click", () => {
@@ -929,7 +939,6 @@
     });
 
     window.addEventListener("popstate", () => {
-
       if(
         popup &&
         popup.classList.contains("active")
@@ -946,7 +955,19 @@
 
     document.addEventListener("click", e => {
 
-      /* ========= DOWNLOAD ========= */
+      const labelLink =
+        e.target.closest(".label-link");
+
+      if(labelLink){
+        e.preventDefault();
+        e.stopPropagation();
+
+        const label =
+          decodeURIComponent(labelLink.dataset.label || "");
+
+        renderLabelPosts(label, 1, true);
+        return;
+      }
 
       const downloadBtn =
         e.target.closest(".button-link");
@@ -960,8 +981,6 @@
         return;
       }
 
-      /* ========= VIDEO ========= */
-
       const overlay =
         e.target.closest(".video-overlay");
 
@@ -973,8 +992,6 @@
 
         return;
       }
-
-      /* ========= GALLERY ========= */
 
       const galleryImg =
         e.target.closest(
@@ -991,16 +1008,12 @@
         if(index !== -1){
 
           setTimeout(() => {
-
             openPopup(index);
-
           }, 100);
         }
 
         return;
       }
-
-      /* ========= CLOSE ========= */
 
       if(
         e.target.closest(".tmdb-close")
@@ -1013,8 +1026,6 @@
         return;
       }
 
-      /* ========= NEXT ========= */
-
       if(
         e.target.closest(".tmdb-next")
       ){
@@ -1024,8 +1035,6 @@
         return;
       }
 
-      /* ========= PREV ========= */
-
       if(
         e.target.closest(".tmdb-prev")
       ){
@@ -1034,8 +1043,6 @@
 
         return;
       }
-
-      /* ========= OUTSIDE ========= */
 
       if(
         popup &&
@@ -1131,7 +1138,6 @@
 
     const observer =
       new MutationObserver(() => {
-
         setPoster();
       });
 
