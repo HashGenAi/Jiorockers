@@ -2,10 +2,21 @@ export async function onRequest(context) {
   const { params, request } = context;
 
   const slug = params.slug || "";
-  const pathname = new URL(request.url).pathname;
+  const url = new URL(request.url);
+  const pathname = url.pathname;
 
   // Let static files load normally
   if (/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|json|txt|xml)$/i.test(pathname)) {
+    return context.next();
+  }
+
+  // Let homepage load normally
+  if (pathname === "/" || pathname === "/index.html") {
+    return context.next();
+  }
+
+  // Let search/pagination query URLs load normally
+  if (url.searchParams.has("search") || url.searchParams.has("page")) {
     return context.next();
   }
 
@@ -136,148 +147,19 @@ export async function onRequest(context) {
 <script src="/script.js" defer></script>
 
 <meta content="no-referrer" name="referrer"/>
-<meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
 </head>
 
 <body>
 
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-profile">
-        <div class="sidebar-avatar">M</div>
-
-        <div>
-          <h2>Premium Movies</h2>
-          <p>Fast, clean, modern</p>
-        </div>
-      </div>
-
-      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
-        ×
-      </button>
-    </div>
-
-    <div class="sidebar-content">
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Navigation</div>
-
-        <a class="sidebar-link" href="/">
-          <span class="icon">⌂</span>
-          <span>Home</span>
-        </a>
-
-        <a class="sidebar-link" href="#detailContent">
-          <span class="icon">★</span>
-          <span>Movie Details</span>
-        </a>
-
-        <a class="sidebar-link" href="#relatedPostsSection">
-          <span class="icon">☰</span>
-          <span>Related Posts</span>
-        </a>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">About</div>
-
-        <p class="sidebar-note">
-          Browse the newest movie posts, search instantly, open details,
-          and move through pages with a polished layout.
-        </p>
-      </div>
-
-    </div>
-  </aside>
-
-<header class="topbar" id="top">
-
-  <a class="brand" href="/" aria-label="Home">
-
+<header class="topbar">
+  <a class="brand" href="/">
     <div class="brand-logo">M</div>
 
     <div class="brand-text">
-      <h1>Premium Movie Blog</h1>
+      <h2>Premium Movie Blog</h2>
       <p>Latest movies, clean layout, quick browsing</p>
     </div>
-
   </a>
-
-  <div class="topbar-center">
-
-    <div class="search-wrap">
-
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M21 21l-4.35-4.35"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"/>
-        <circle cx="11"
-                cy="11"
-                r="7"
-                stroke="white"
-                stroke-width="2"/>
-      </svg>
-
-      <input
-        id="searchInput"
-        class="search-input"
-        type="search"
-        placeholder="Search movies, labels, titles..."
-      >
-
-      <button
-        id="searchClear"
-        class="search-clear"
-        aria-label="Clear search"
-      >
-        ×
-      </button>
-
-    </div>
-
-  </div>
-
-  <div class="topbar-actions">
-
-    <button
-      class="menu-btn search-btn"
-      id="searchBtn"
-      aria-label="Focus search"
-    >
-
-      <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
-        <path d="M21 21l-4.35-4.35"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"/>
-        <circle cx="11"
-                cy="11"
-                r="7"
-                stroke="white"
-                stroke-width="2"/>
-      </svg>
-
-    </button>
-
-    <button
-      class="menu-btn"
-      id="menuBtn"
-      aria-label="Open menu"
-    >
-
-      <div class="menu-lines" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-
-    </button>
-
-  </div>
-
 </header>
 
 <div class="app">
@@ -333,55 +215,6 @@ export async function onRequest(context) {
   </div>
 
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  const sidebar = document.getElementById("sidebar");
-  const sidebarOverlay = document.getElementById("sidebarOverlay");
-
-  const menuBtn = document.getElementById("menuBtn");
-  const sidebarClose = document.getElementById("sidebarClose");
-
-  const searchBtn = document.getElementById("searchBtn");
-  const searchInput = document.getElementById("searchInput");
-  const searchClear = document.getElementById("searchClear");
-
-  function openSidebar() {
-    sidebar?.classList.add("active");
-    sidebarOverlay?.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeSidebar() {
-    sidebar?.classList.remove("active");
-    sidebarOverlay?.classList.remove("active");
-    document.body.style.overflow = "";
-  }
-
-  menuBtn?.addEventListener("click", openSidebar);
-  sidebarClose?.addEventListener("click", closeSidebar);
-  sidebarOverlay?.addEventListener("click", closeSidebar);
-
-  searchBtn?.addEventListener("click", () => {
-    searchInput?.focus();
-  });
-
-  searchClear?.addEventListener("click", () => {
-    if (searchInput) searchInput.value = "";
-    searchInput?.focus();
-  });
-
-  searchInput?.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      const value = searchInput.value.trim();
-      if (!value) return;
-      window.location.href = "/?search=" + encodeURIComponent(value);
-    }
-  });
-
-});
-</script>
 
 </body>
 </html>
