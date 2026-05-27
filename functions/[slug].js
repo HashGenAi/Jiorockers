@@ -9,11 +9,6 @@ export async function onRequest(context) {
     return context.next();
   }
 
-  // Let /download page load normally
-  if (pathname === "/download" || pathname === "/download/") {
-    return context.next();
-  }
-
   function slugify(text) {
     return text
       .toLowerCase()
