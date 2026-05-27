@@ -15,7 +15,7 @@ export async function onRequest(context) {
     return context.next();
   }
 
-  // Let search/pagination query URLs load normally
+  // Let search and pagination query URLs load normally
   if (url.searchParams.has("search") || url.searchParams.has("page")) {
     return context.next();
   }
@@ -38,10 +38,10 @@ export async function onRequest(context) {
 
   // SEARCH POSTS
   for (let i = 1; i <= 500; i++) {
-    const url = new URL(`/json/posts${i}.json`, request.url);
+    const jsonUrl = new URL(`/json/posts${i}.json`, request.url);
 
     try {
-      const res = await fetch(url);
+      const res = await fetch(jsonUrl);
 
       if (!res.ok) break;
 
@@ -147,6 +147,7 @@ export async function onRequest(context) {
 <script src="/script.js" defer></script>
 
 <meta content="no-referrer" name="referrer"/>
+<meta content="https://hashgen.website" data-id="d1" name="video-domain"/>
 </head>
 
 <body>
