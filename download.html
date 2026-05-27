@@ -3,313 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Premium Movie Blog</title>
+  <title>Preparing Your Download</title>
 
   <style>
-    /* =========================
-       NAVBAR + SEARCH + MENU ONLY
-    ========================= */
-
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
-
-    body{
-      background:#0f172a;
-      font-family:Arial,sans-serif;
-      color:white;
-    }
-
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:1000;
-
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:15px;
-
-      padding:14px 18px;
-
-      background:rgba(15,23,42,.95);
-      backdrop-filter:blur(12px);
-
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-
-      text-decoration:none;
-      color:white;
-    }
-
-    .brand-logo{
-      width:44px;
-      height:44px;
-
-      border-radius:14px;
-
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      font-size:20px;
-      font-weight:700;
-    }
-
-    .brand-text h1{
-      font-size:18px;
-    }
-
-    .brand-text p{
-      font-size:12px;
-      opacity:.7;
-    }
-
-    .topbar-center{
-      flex:1;
-      max-width:600px;
-    }
-
-    .search-wrap{
-      position:relative;
-    }
-
-    .search-input{
-      width:100%;
-      height:48px;
-
-      border:none;
-      outline:none;
-
-      padding:0 45px 0 48px;
-
-      border-radius:16px;
-
-      background:rgba(255,255,255,.08);
-
-      color:white;
-      font-size:15px;
-    }
-
-    .search-input::placeholder{
-      color:rgba(255,255,255,.55);
-    }
-
-    .search-icon{
-      position:absolute;
-      left:16px;
-      top:50%;
-      transform:translateY(-50%);
-
-      width:20px;
-      height:20px;
-
-      opacity:.7;
-      pointer-events:none;
-    }
-
-    .search-clear{
-      position:absolute;
-      right:14px;
-      top:50%;
-      transform:translateY(-50%);
-
-      border:none;
-      background:none;
-
-      color:white;
-      font-size:22px;
-      cursor:pointer;
-    }
-
-    .topbar-actions{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-
-    .menu-btn{
-      width:46px;
-      height:46px;
-
-      border:none;
-      border-radius:14px;
-
-      background:rgba(255,255,255,.08);
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      cursor:pointer;
-      color:white;
-    }
-
-    .menu-lines{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-
-    .menu-lines span{
-      width:18px;
-      height:2px;
-
-      background:white;
-      border-radius:10px;
-    }
-
-    .sidebar{
-      position:fixed;
-      top:0;
-      right:-320px;
-
-      width:300px;
-      height:100vh;
-
-      background:#111827;
-
-      z-index:2000;
-
-      transition:.3s ease;
-
-      display:flex;
-      flex-direction:column;
-    }
-
-    .sidebar.active{
-      right:0;
-    }
-
-    .sidebar-overlay{
-      position:fixed;
-      inset:0;
-
-      background:rgba(0,0,0,.5);
-
-      opacity:0;
-      visibility:hidden;
-
-      transition:.3s ease;
-
-      z-index:1500;
-    }
-
-    .sidebar-overlay.active{
-      opacity:1;
-      visibility:visible;
-    }
-
-    .sidebar-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-
-      padding:20px;
-
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-
-    .sidebar-profile{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-
-    .sidebar-avatar{
-      width:50px;
-      height:50px;
-
-      border-radius:16px;
-
-      background:linear-gradient(135deg,#2563eb,#7c3aed);
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      font-size:22px;
-      font-weight:bold;
-    }
-
-    .sidebar-profile h2{
-      font-size:18px;
-      color:white;
-    }
-
-    .sidebar-profile p{
-      font-size:12px;
-      opacity:.7;
-      color:white;
-    }
-
-    .sidebar-close{
-      border:none;
-      background:none;
-
-      color:white;
-      font-size:30px;
-
-      cursor:pointer;
-    }
-
-    .sidebar-content{
-      padding:20px;
-    }
-
-    .sidebar-section-title{
-      margin-bottom:14px;
-      opacity:.6;
-      font-size:13px;
-      text-transform:uppercase;
-    }
-
-    .sidebar-link{
-      display:flex;
-      align-items:center;
-      gap:12px;
-
-      padding:14px;
-
-      margin-bottom:10px;
-
-      border-radius:14px;
-
-      text-decoration:none;
-      color:white;
-
-      background:rgba(255,255,255,.05);
-
-      transition:.2s;
-    }
-
-    .sidebar-link:hover{
-      background:rgba(255,255,255,.1);
-    }
-
-    @media(max-width:768px){
-      .brand-text{
-        display:none;
-      }
-
-      .topbar-center{
-        display:none;
-      }
-    }
-
-    /* =========================
-       YOUR ORIGINAL CSS
-    ========================= */
-
     .wrapper{
       max-width:500px;
       margin:60px auto;
@@ -368,282 +64,535 @@
       font-size:14px;
       color:#888;
     }
+
+    .sidebar-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.5);
+      opacity:0;
+      visibility:hidden;
+      transition:.3s;
+      z-index:998;
+    }
+
+    .sidebar-overlay.active{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .sidebar{
+      position:fixed;
+      top:0;
+      left:0;
+      width:300px;
+      max-width:85%;
+      height:100%;
+      background:#111;
+      color:#fff;
+      transform:translateX(-100%);
+      transition:.3s;
+      z-index:999;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .sidebar.active{
+      transform:translateX(0);
+    }
+
+    .sidebar-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:18px;
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+
+    .sidebar-profile{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .sidebar-avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:#ff2e44;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      color:#fff;
+    }
+
+    .sidebar-header h2{
+      margin:0;
+      font-size:18px;
+      color:#fff;
+    }
+
+    .sidebar-header p{
+      margin:2px 0 0;
+      font-size:13px;
+      color:#bbb;
+    }
+
+    .sidebar-close{
+      background:none;
+      border:none;
+      color:#fff;
+      font-size:30px;
+      cursor:pointer;
+      line-height:1;
+    }
+
+    .sidebar-content{
+      padding:18px;
+    }
+
+    .sidebar-section{
+      margin-bottom:24px;
+    }
+
+    .sidebar-section-title{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      color:#aaa;
+      margin-bottom:12px;
+    }
+
+    .sidebar-link{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#fff;
+      text-decoration:none;
+      padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .sidebar-link .icon{
+      width:20px;
+      text-align:center;
+    }
+
+    .sidebar-note{
+      color:#bbb;
+      font-size:14px;
+      line-height:1.6;
+      margin:0;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+      padding:14px 18px;
+      background:#111;
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:997;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
+      color:#fff;
+      min-width:0;
+    }
+
+    .brand-logo{
+      width:40px;
+      height:40px;
+      border-radius:10px;
+      background:#ff2e44;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:bold;
+      flex:0 0 auto;
+    }
+
+    .brand-text{
+      min-width:0;
+    }
+
+    .brand-text h1{
+      margin:0;
+      font-size:18px;
+      color:#fff;
+      line-height:1.2;
+    }
+
+    .brand-text p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:#bbb;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .topbar-center{
+      flex:1;
+      max-width:480px;
+      display:flex;
+      justify-content:center;
+    }
+
+    .search-wrap{
+      position:relative;
+      width:100%;
+      max-width:420px;
+      display:flex;
+      align-items:center;
+    }
+
+    .search-icon{
+      position:absolute;
+      left:14px;
+      width:18px;
+      height:18px;
+      pointer-events:none;
+      opacity:.8;
+    }
+
+    .search-input{
+      width:100%;
+      padding:12px 44px 12px 42px;
+      border:none;
+      outline:none;
+      border-radius:999px;
+      background:#222;
+      color:#fff;
+      font-size:14px;
+    }
+
+    .search-input::placeholder{
+      color:#aaa;
+    }
+
+    .search-clear{
+      position:absolute;
+      right:10px;
+      width:28px;
+      height:28px;
+      border:none;
+      background:transparent;
+      color:#fff;
+      font-size:22px;
+      cursor:pointer;
+      opacity:.85;
+    }
+
+    .topbar-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex:0 0 auto;
+    }
+
+    .menu-btn{
+      width:42px;
+      height:42px;
+      border:none;
+      border-radius:10px;
+      background:#222;
+      color:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .menu-lines{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .menu-lines span{
+      width:18px;
+      height:2px;
+      background:#fff;
+      display:block;
+      border-radius:2px;
+    }
+
+    .search-btn{
+      display:none;
+    }
+
+    .app{
+      padding:0 16px 40px;
+    }
+
+    @media (max-width:768px){
+      .topbar-center{
+        display:none;
+      }
+
+      .search-btn{
+        display:flex;
+      }
+
+      .brand-text p{
+        display:none;
+      }
+
+      .wrapper{
+        margin:24px auto;
+        padding:24px 16px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-<!-- =========================
-     NAVBAR + SEARCH + MENU ONLY
-========================= -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-
-  <div class="sidebar-header">
-
-    <div class="sidebar-profile">
-      <div class="sidebar-avatar">M</div>
-
-      <div>
-        <h2>Premium Movies</h2>
-        <p>Fast, clean, modern</p>
-      </div>
-    </div>
-
-    <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
-      ×
-    </button>
-
-  </div>
-
-  <div class="sidebar-content">
-
-    <div class="sidebar-section">
-
-      <div class="sidebar-section-title">
-        Navigation
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-profile">
+        <div class="sidebar-avatar">M</div>
+        <div>
+          <h2>Premium Movies</h2>
+          <p>Fast, clean, modern</p>
+        </div>
       </div>
 
-      <a class="sidebar-link" href="/">
-        <span class="icon">⌂</span>
-        <span>Home</span>
-      </a>
-
-      <a class="sidebar-link" href="#">
-        <span class="icon">★</span>
-        <span>Movies</span>
-      </a>
-
-      <a class="sidebar-link" href="#">
-        <span class="icon">☰</span>
-        <span>Categories</span>
-      </a>
-
+      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
     </div>
 
-  </div>
+    <div class="sidebar-content">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Navigation</div>
 
-</aside>
+        <a class="sidebar-link" href="/">
+          <span class="icon">⌂</span>
+          <span>Home</span>
+        </a>
 
-<!-- NAVBAR -->
-<header class="topbar" id="top">
+        <a class="sidebar-link" href="#top">
+          <span class="icon">⌂</span>
+          <span>Top</span>
+        </a>
 
-  <a class="brand" href="/" aria-label="Home">
+        <a class="sidebar-link" href="#downloadSection">
+          <span class="icon">★</span>
+          <span>Download</span>
+        </a>
+      </div>
 
-    <div class="brand-logo">M</div>
-
-    <div class="brand-text">
-      <h1>Premium Movie Blog</h1>
-      <p>Latest movies, clean layout</p>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">About</div>
+        <p class="sidebar-note">
+          Browse the newest movie posts, search instantly, open details,
+          and move through pages with a polished layout.
+        </p>
+      </div>
     </div>
+  </aside>
 
-  </a>
+  <header class="topbar" id="top">
+    <a class="brand" href="/" aria-label="Home">
+      <div class="brand-logo">M</div>
+      <div class="brand-text">
+        <h1>Premium Movie Blog</h1>
+        <p>Latest movies, clean layout, quick browsing</p>
+      </div>
+    </a>
 
-  <!-- SEARCH -->
-  <div class="topbar-center">
-
-    <div class="search-wrap">
-
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none">
-        <path d="M21 21l-4.35-4.35"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"/>
-        <circle cx="11"
-                cy="11"
-                r="7"
+    <div class="topbar-center">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 21l-4.35-4.35"
                 stroke="white"
-                stroke-width="2"/>
-      </svg>
+                stroke-width="2"
+                stroke-linecap="round"/>
+          <circle cx="11"
+                  cy="11"
+                  r="7"
+                  stroke="white"
+                  stroke-width="2"/>
+        </svg>
 
-      <input
-        id="searchInput"
-        class="search-input"
-        type="search"
-        placeholder="Search movies..."
-      >
+        <input
+          id="searchInput"
+          class="search-input"
+          type="search"
+          placeholder="Search movies, labels, titles..."
+        >
 
+        <button
+          id="searchClear"
+          class="search-clear"
+          aria-label="Clear search"
+          type="button"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
       <button
-        id="searchClear"
-        class="search-clear"
-        type="button">
-        ×
+        class="menu-btn search-btn"
+        id="searchBtn"
+        aria-label="Search"
+        type="button"
+      >
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
+          <path d="M21 21l-4.35-4.35"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"/>
+          <circle cx="11"
+                  cy="11"
+                  r="7"
+                  stroke="white"
+                  stroke-width="2"/>
+        </svg>
       </button>
 
+      <button
+        class="menu-btn"
+        id="menuBtn"
+        aria-label="Open menu"
+        type="button"
+      >
+        <div class="menu-lines" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </button>
     </div>
+  </header>
 
+  <div class="app">
+    <div class="wrapper" id="downloadSection">
+      <h2>Preparing Your Download</h2>
+      <p id="statusText">Please wait, your download link will be ready in:</p>
+
+      <div id="countdown">5</div>
+
+      <a id="downloadBtn" href="javascript:void(0)">Download Now</a>
+
+      <div class="note">Do not close this page while waiting.</div>
+    </div>
   </div>
 
-  <!-- ACTIONS -->
-  <div class="topbar-actions">
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
 
-    <!-- MOBILE SEARCH BUTTON -->
-    <button
-      class="menu-btn search-btn"
-      id="searchBtn"
-      type="button">
+    const sidebar = document.getElementById("sidebar");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
 
-      <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-        <path d="M21 21l-4.35-4.35"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"/>
-        <circle cx="11"
-                cy="11"
-                r="7"
-                stroke="white"
-                stroke-width="2"/>
-      </svg>
+    const menuBtn = document.getElementById("menuBtn");
+    const sidebarClose = document.getElementById("sidebarClose");
 
-    </button>
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+    const searchClear = document.getElementById("searchClear");
 
-    <!-- MENU BUTTON -->
-    <button
-      class="menu-btn"
-      id="menuBtn"
-      type="button">
+    function openSidebar() {
+      sidebar?.classList.add("active");
+      sidebarOverlay?.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
 
-      <div class="menu-lines">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+    function closeSidebar() {
+      sidebar?.classList.remove("active");
+      sidebarOverlay?.classList.remove("active");
+      document.body.style.overflow = "";
+    }
 
-    </button>
+    function runSearch() {
+      const value = searchInput?.value.trim();
+      if (!value) return;
+      window.location.href = "/?search=" + encodeURIComponent(value);
+    }
 
-  </div>
+    menuBtn?.addEventListener("click", openSidebar);
+    sidebarClose?.addEventListener("click", closeSidebar);
+    sidebarOverlay?.addEventListener("click", closeSidebar);
 
-</header>
+    searchBtn?.addEventListener("click", runSearch);
 
-<!-- =========================
-     YOUR ORIGINAL DOWNLOAD CODE
-========================= -->
+    searchClear?.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      searchInput?.focus();
+    });
 
-<div class="wrapper">
-  <h2>Preparing Your Download</h2>
-  <p id="statusText">Please wait, your download link will be ready in:</p>
+    searchInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch();
+      }
+    });
 
-  <div id="countdown">5</div>
+    // Countdown seconds
+    var seconds = 5;
+    var countdownEl = document.getElementById("countdown");
+    var downloadBtn = document.getElementById("downloadBtn");
+    var statusText = document.getElementById("statusText");
 
-  <a id="downloadBtn" href="javascript:void(0)">Download Now</a>
+    // Get URL params
+    var params = new URLSearchParams(window.location.search);
+    var targetPath = params.get("target");  // path + params only
+    var domainKey = params.get("d");        // domain key
 
-  <div class="note">Do not close this page while waiting.</div>
-</div>
+    // Domain list
+    var domains = {
+      d1: "https://1fichier.com",
+      d2: "https://dailyuploads.net",
+      d3: "https://nitroflare.com",
+      d4: "https://mixdrop.top",
+      d5: "https://vikingfile.com",
+      d6: "https://www.messycloud.ink"
+    };
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+    // Determine final link
+    var domain = domains[domainKey]; // no default
+    var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
 
-  const sidebar = document.getElementById("sidebar");
-  const sidebarOverlay = document.getElementById("sidebarOverlay");
+    // Check target
+    if (!targetPath) {
+      countdownEl.innerHTML = "0";
+      statusText.innerHTML = "Invalid download link.";
+    } else {
 
-  const menuBtn = document.getElementById("menuBtn");
-  const sidebarClose = document.getElementById("sidebarClose");
+      var timer = setInterval(function(){
+        countdownEl.innerHTML = seconds;
+        seconds--;
 
-  const searchBtn = document.getElementById("searchBtn");
-  const searchInput = document.getElementById("searchInput");
-  const searchClear = document.getElementById("searchClear");
+        if (seconds < 0) {
+          clearInterval(timer);
 
-  function openSidebar() {
-    sidebar.classList.add("active");
-    sidebarOverlay.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
+          countdownEl.innerHTML = "Ready!";
+          statusText.innerHTML = "Your download link is ready.";
+          downloadBtn.classList.add("active");
 
-  function closeSidebar() {
-    sidebar.classList.remove("active");
-    sidebarOverlay.classList.remove("active");
-    document.body.style.overflow = "";
-  }
+          // Click event for download
+          downloadBtn.addEventListener("click", function(){
+            window.location.href = finalLink;
+          });
+        }
 
-  function runSearch() {
-    const value = searchInput.value.trim();
+      }, 1000);
 
-    if (!value) return;
-
-    window.location.href =
-      "/?search=" + encodeURIComponent(value);
-  }
-
-  menuBtn.addEventListener("click", openSidebar);
-
-  sidebarClose.addEventListener("click", closeSidebar);
-
-  sidebarOverlay.addEventListener("click", closeSidebar);
-
-  searchBtn.addEventListener("click", runSearch);
-
-  searchClear.addEventListener("click", () => {
-    searchInput.value = "";
-    searchInput.focus();
-  });
-
-  searchInput.addEventListener("keydown", (e) => {
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      runSearch();
     }
 
   });
-
-});
-</script>
-
-<script>
-// Countdown seconds
-var seconds = 5;
-var countdownEl = document.getElementById("countdown");
-var downloadBtn = document.getElementById("downloadBtn");
-var statusText = document.getElementById("statusText");
-
-// Get URL params
-var params = new URLSearchParams(window.location.search);
-var targetPath = params.get("target");  // path + params only
-var domainKey = params.get("d");        // domain key
-
-// Domain list
-var domains = {
-  d1: "https://1fichier.com",
-  d2: "https://dailyuploads.net",
-  d3: "https://nitroflare.com",
-  d4: "https://mixdrop.top",
-  d5: "https://vikingfile.com",
-  d6: "https://www.messycloud.ink"
-};
-
-// Determine final link
-var domain = domains[domainKey]; // no default
-var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
-
-// Check target
-if (!targetPath) {
-  countdownEl.innerHTML = "0";
-  statusText.innerHTML = "Invalid download link.";
-} else {
-
-  var timer = setInterval(function(){
-    countdownEl.innerHTML = seconds;
-    seconds--;
-
-    if (seconds < 0) {
-      clearInterval(timer);
-
-      countdownEl.innerHTML = "Ready!";
-      statusText.innerHTML = "Your download link is ready.";
-      downloadBtn.classList.add("active");
-
-      // Click event for download
-      downloadBtn.addEventListener("click", function(){
-        window.location.href = finalLink;
-      });
-    }
-
-  }, 1000);
-
-}
-</script>
+  </script>
 
 </body>
 </html>
