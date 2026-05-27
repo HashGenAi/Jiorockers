@@ -207,7 +207,7 @@
 
   </header>
 
-  <div class="language-cloud">
+  <div class="language-cloud" id="languageCloud">
     <a href="/?label=Telugu" class="lang-chip">Telugu</a>
     <a href="/?label=Tamil" class="lang-chip">Tamil</a>
     <a href="/?label=Hindi" class="lang-chip">Hindi</a>
@@ -582,6 +582,7 @@
     const searchStatus = document.getElementById("searchStatus");
     const pageTitleEl = document.querySelector(".page-title");
     const brandTitle = document.querySelector(".brand-text h1");
+    const languageCloud = document.getElementById("languageCloud");
 
     const searchBtn = document.getElementById("searchBtn");
     const menuBtn = document.getElementById("menuBtn");
@@ -619,6 +620,12 @@
     function setBrandTitleVisible(visible){
       if(brandTitle){
         brandTitle.style.display = visible ? "block" : "none";
+      }
+    }
+
+    function setLanguageCloudVisible(visible){
+      if(languageCloud){
+        languageCloud.style.display = visible ? "flex" : "none";
       }
     }
 
@@ -775,6 +782,7 @@
     function showHome(){
       setPageTitleVisible(!currentSearch && !currentLabel);
       setBrandTitleVisible(true);
+      setLanguageCloudVisible(!currentSearch);
       postsEl.style.display = "grid";
       pagination.style.display = currentSearch ? "none" : "flex";
       updatePageBadge();
@@ -871,6 +879,7 @@
 
       setPageTitleVisible(true);
       setBrandTitleVisible(true);
+      setLanguageCloudVisible(true);
       postsEl.innerHTML = `<div class="loading">Loading Premium Movies...</div>`;
 
       await ensurePostsForPage(page);
@@ -931,6 +940,7 @@
 
       showHome();
       setPageTitleVisible(false);
+      setLanguageCloudVisible(false);
 
       currentSearch = query.trim();
       searchStatus.style.display = "block";
@@ -978,6 +988,7 @@
 
       showHome();
       setPageTitleVisible(false);
+      setLanguageCloudVisible(true);
 
       searchStatus.style.display = "block";
       searchStatus.textContent = `Loading ${currentLabel} posts...`;
