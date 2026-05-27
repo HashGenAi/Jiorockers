@@ -17,11 +17,6 @@
   <link rel="preload" as="fetch" href="json/posts1.json" type="application/json">
 
   <style>
-    .label-link{
-      text-decoration:none;
-      color:inherit;
-      cursor:pointer;
-    }
     .clickable-label{
       cursor:pointer;
       transition:.2s;
@@ -29,6 +24,10 @@
     .clickable-label:hover{
       opacity:.8;
       transform:scale(1.05);
+    }
+    .label-link{
+      text-decoration:none;
+      color:inherit;
     }
   </style>
 
@@ -670,7 +669,7 @@
       const slug = slugify(title);
 
       return `
-        <div class="card" data-slug="${slug}">
+        <a class="card" href="/${slug}" data-slug="${slug}">
           <div class="poster-wrap">
             <img class="poster" src="${image}" loading="lazy" alt="${title}">
           </div>
@@ -680,15 +679,14 @@
 
             <div class="labels">
               ${labels.slice(0,6).map(label => `
-                <a
-                  href="?label=${encodeURIComponent(label)}&page=1"
+                <span
                   class="label clickable-label label-link"
                   data-label="${encodeURIComponent(label)}"
-                >${label}</a>
+                >${label}</span>
               `).join("")}
             </div>
           </div>
-        </div>
+        </a>
       `;
     }
 
@@ -770,7 +768,7 @@
       setPageTitleVisible(!currentSearch && !currentLabel);
       setBrandTitleVisible(true);
       postsEl.style.display = "grid";
-      pagination.style.display = (currentSearch ? "none" : "flex");
+      pagination.style.display = currentSearch ? "none" : "flex";
       detailView.style.display = "none";
       updatePageBadge();
     }
@@ -986,7 +984,7 @@
         history.pushState(
           { page: foundPage, post: slug, label: currentLabel || "", search: currentSearch || "" },
           "",
-          `?post=${encodeURIComponent(slug)}`
+          `/${slug}`
         );
       }
 
@@ -1209,22 +1207,33 @@
 
       const params = new URLSearchParams(window.location.search);
       const page = parseInt(params.get("page") || "1", 10);
-      const slug = params.get("post");
       const search = params.get("search") || "";
       const label = params.get("label") || "";
+
+      const pathSlug =
+        window.location.pathname
+          .replace(/^\/+/,"")
+          .replace(/\/+$/,"");
+
+      const slug =
+        pathSlug &&
+        !pathSlug.includes(".") &&
+        pathSlug !== "label"
+          ? decodeURIComponent(pathSlug)
+          : params.get("post");
 
       currentPage = Number.isFinite(page) && page > 0 ? page : 1;
       pageNumEl.innerText = currentPage;
 
-      if(label){
+      if(slug){
+        await openPost(slug, false);
+      }else if(label){
         await renderLabelPosts(label, currentPage, false);
       }else if(search){
         searchInput.value = search;
         searchClear.classList.add("show");
         searchBtn.classList.add("active");
         await renderSearchResults(search, false);
-      }else if(slug){
-        await openPost(slug, false);
       }else{
         await renderPage(currentPage, false);
       }
