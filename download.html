@@ -1,5 +1,11 @@
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preparing Your Download</title>
 
+<style>
 .wrapper{
   max-width:500px;
   margin:60px auto;
@@ -324,25 +330,6 @@ p{
 }
 
 @media (max-width:768px){
-  .topbar-center{
-    display:none;
-  }
-
-  .search-btn{
-    display:flex;
-  }
-
-  .brand-text p{
-    display:none;
-  }
-
-  .wrapper{
-    margin:24px auto;
-    padding:24px 16px;
-  }
-}
-
-@media (max-width:768px){
   .topbar{
     padding:12px 14px;
     gap:10px;
@@ -462,8 +449,10 @@ p{
     font-size:13px;
   }
 }
-
 </style>
+</head>
+
+<body>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -644,59 +633,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  var seconds = 5;
+  var countdownEl = document.getElementById("countdown");
+  var downloadBtn = document.getElementById("downloadBtn");
+  var statusText = document.getElementById("statusText");
+
+  var params = new URLSearchParams(window.location.search);
+  var targetPath = params.get("target");
+  var domainKey = params.get("d");
+
+  var domains = {
+    d1: "https://1fichier.com",
+    d2: "https://dailyuploads.net",
+    d3: "https://nitroflare.com",
+    d4: "https://mixdrop.top",
+    d5: "https://vikingfile.com",
+    d6: "https://www.messycloud.ink"
+  };
+
+  var domain = domains[domainKey];
+  var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
+
+  if (!targetPath) {
+    countdownEl.innerHTML = "0";
+    statusText.innerHTML = "Invalid download link.";
+  } else {
+    var timer = setInterval(function(){
+      countdownEl.innerHTML = seconds;
+      seconds--;
+
+      if (seconds < 0) {
+        clearInterval(timer);
+
+        countdownEl.innerHTML = "Ready!";
+        statusText.innerHTML = "Your download link is ready.";
+        downloadBtn.classList.add("active");
+
+        downloadBtn.addEventListener("click", function(){
+          window.location.href = finalLink;
+        });
+      }
+
+    }, 1000);
+  }
+
 });
 </script>
 
-<script>
-// Countdown seconds
-var seconds = 5;
-var countdownEl = document.getElementById("countdown");
-var downloadBtn = document.getElementById("downloadBtn");
-var statusText = document.getElementById("statusText");
-
-// Get URL params
-var params = new URLSearchParams(window.location.search);
-var targetPath = params.get("target");  // path + params only
-var domainKey = params.get("d");        // domain key
-
-// Domain list
-var domains = {
-  d1: "https://1fichier.com",
-  d2: "https://dailyuploads.net",
-  d3: "https://nitroflare.com",
-  d4: "https://mixdrop.top",
-  d5: "https://vikingfile.com",
-  d6: "https://www.messycloud.ink"
-};
-
-// Determine final link
-var domain = domains[domainKey]; // no default
-var finalLink = targetPath ? (domain ? domain + targetPath : targetPath) : null;
-
-// Check target
-if (!targetPath) {
-  countdownEl.innerHTML = "0";
-  statusText.innerHTML = "Invalid download link.";
-} else {
-
-  var timer = setInterval(function(){
-    countdownEl.innerHTML = seconds;
-    seconds--;
-
-    if (seconds < 0) {
-      clearInterval(timer);
-
-      countdownEl.innerHTML = "Ready!";
-      statusText.innerHTML = "Your download link is ready.";
-      downloadBtn.classList.add("active");
-
-      // Click event for download
-      downloadBtn.addEventListener("click", function(){
-        window.location.href = finalLink;
-      });
-    }
-
-  }, 1000);
-
-}
-</script>
+</body>
+</html>
