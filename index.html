@@ -29,6 +29,41 @@
       text-decoration:none;
       color:inherit;
     }
+
+    .language-cloud{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding:16px 14px 8px;
+      align-items:flex-start;
+      margin:0 auto;
+      max-width:1200px;
+      box-sizing:border-box;
+    }
+
+    .cloud-item{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 18px;
+      border-radius:999px;
+      text-decoration:none;
+      color:inherit;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
+      backdrop-filter:blur(8px);
+      transition:transform .2s ease, opacity .2s ease, background .2s ease;
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+
+    .cloud-item:hover{
+      opacity:.9;
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.14);
+    }
   </style>
 
   <!-- External JavaScript -->
@@ -69,18 +104,13 @@
           <span class="icon">★</span>
           <span>Latest Movies</span>
         </a>
-
-        <a class="sidebar-link" href="#relatedPostsSection">
-          <span class="icon">☰</span>
-          <span>Related Posts</span>
-        </a>
       </div>
 
       <div class="sidebar-section">
         <div class="sidebar-section-title">About</div>
 
         <p class="sidebar-note">
-          Browse the newest movie posts, search instantly, open details,
+          Browse the newest movie posts, search instantly,
           and move through pages with a polished layout.
         </p>
       </div>
@@ -90,7 +120,7 @@
 
   <header class="topbar" id="top">
 
-    <a class="brand" href="?page=1" aria-label="Home">
+    <a class="brand" href="/" aria-label="Home">
 
       <div class="brand-logo">M</div>
 
@@ -176,6 +206,15 @@
 
   </header>
 
+  <div class="language-cloud">
+    <a href="/?label=Telugu" class="cloud-item">Telugu</a>
+    <a href="/?label=Tamil" class="cloud-item">Tamil</a>
+    <a href="/?label=Hindi" class="cloud-item">Hindi</a>
+    <a href="/?label=Kannada" class="cloud-item">Kannada</a>
+    <a href="/?label=Malayalam" class="cloud-item">Malayalam</a>
+    <a href="/?label=English" class="cloud-item">English</a>
+  </div>
+
   <div class="app">
 
     <div id="pageBadge" class="page-badge"></div>
@@ -190,7 +229,7 @@
 
     <div class="pagination" id="pagination">
 
-      <a id="prevBtn" class="nav-btn" href="?page=1">
+      <a id="prevBtn" class="nav-btn" href="/">
         Prev
       </a>
 
@@ -852,13 +891,17 @@
       const prevPage = currentPage > 1 ? currentPage - 1 : 1;
       const nextPage = currentPage + 1;
 
-      prevBtn.href = `?page=${prevPage}`;
+      prevBtn.href = prevPage === 1 ? `/` : `?page=${prevPage}`;
       nextBtn.href = `?page=${nextPage}`;
 
       pagination.style.display = "flex";
 
       if(addHistory){
-        history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+        if(currentPage === 1){
+          history.pushState({ page: 1 }, "", `/`);
+        }else{
+          history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+        }
       }
 
       updateNavState();
@@ -873,7 +916,7 @@
         searchStatus.style.display = "none";
         currentSearch = "";
         if(addHistory){
-          history.pushState({ page: currentPage }, "", `?page=${currentPage}`);
+          history.pushState({ page: currentPage }, "", currentPage === 1 ? `/` : `?page=${currentPage}`);
         }
         await renderPage(currentPage, false);
         return;
@@ -971,7 +1014,7 @@
       const prevPage = currentPage > 1 ? currentPage - 1 : 1;
       const nextPage = currentPage < currentLabelTotalPages ? currentPage + 1 : currentLabelTotalPages;
 
-      prevBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
+      prevBtn.href = prevPage === 1 ? `/` : `?label=${encodeURIComponent(currentLabel)}&page=${prevPage}`;
       nextBtn.href = `?label=${encodeURIComponent(currentLabel)}&page=${nextPage}`;
 
       if(addHistory){
